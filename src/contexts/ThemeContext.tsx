@@ -1,0 +1,231 @@
+'use client'
+
+import React, { createContext, useContext, useState, useEffect } from 'react'
+
+// Types
+export type Theme = 'light' | 'dark' | 'system'
+
+export interface CurrencySettings {
+  primary: string
+  secondary?: string
+  displaySymbol: boolean
+  exchangeRates: Record<string, number>
+  lastUpdated?: string
+  autoUpdate?: boolean
+}
+
+export interface DashboardSettings {
+  showProgressBars: boolean
+  showRecentTasks: boolean
+  showFinancialOverview: boolean
+  showQuickActions: boolean
+  tasksToShow: number
+}
+
+export interface Settings {
+  theme: Theme
+  personalDetails: {
+    name: string
+    email: string
+    targetCountry: string
+    targetStartDate: string
+  }
+  currency: CurrencySettings
+  dashboard: DashboardSettings
+  notifications: {
+    deadlineReminders: boolean
+    taskUpdates: boolean
+    emailNotifications: boolean
+  }
+  tasks: {
+    defaultPriority: 'Low' | 'Medium' | 'High'
+    defaultCategory: string
+    showCompletedTasks: boolean
+    autoArchiveCompleted: boolean
+    sortBy: 'dueDate' | 'priority' | 'created' | 'title'
+    groupByCategory: boolean
+  }
+  universities: {
+    defaultLanguage: 'English' | 'German' | 'Both'
+    showDeadlineWarnings: boolean
+    warningDaysBefore: number
+    sortBy: 'deadline' | 'name' | 'status'
+    showOnlyActive: boolean
+  }
+  finance: {
+    budgetWarningThreshold: number
+    showCategoryBreakdown: boolean
+    defaultCategory: 'Application' | 'Travel' | 'Tuition' | 'Living' | 'Other'
+    trackActualAmounts: boolean
+    showCurrencyConverter: boolean
+  }
+  appearance: {
+    compactMode: boolean
+    showAnimations: boolean
+    fontSize: 'small' | 'medium' | 'large'
+    colorScheme: 'blue' | 'green' | 'purple' | 'red' | 'orange'
+    sidebarCollapsed: boolean
+  }
+  data: {
+    autoSave: boolean
+    backupFrequency: 'daily' | 'weekly' | 'monthly'
+    exportFormat: 'json' | 'csv'
+    syncEnabled: boolean
+  }
+}
+
+const defaultSettings: Settings = {
+  theme: 'system',
+  personalDetails: {
+    name: '',
+    email: '',
+    targetCountry: 'Germany',
+    targetStartDate: ''
+  },
+  currency: {
+    primary: 'EUR',
+    secondary: 'USD',
+    displaySymbol: true,
+    exchangeRates: {
+      EUR: 1,
+      USD: 1.1,
+      GBP: 0.85,
+      INR: 90
+    },
+    lastUpdated: new Date().toISOString(),
+    autoUpdate: false
+  },
+  dashboard: {
+    showProgressBars: true,
+    showRecentTasks: true,
+    showFinancialOverview: true,
+    showQuickActions: true,
+    tasksToShow: 5
+  },
+  notifications: {
+    deadlineReminders: true,
+    taskUpdates: true,
+    emailNotifications: false
+  },
+  tasks: {
+    defaultPriority: 'Medium',
+    defaultCategory: 'General',
+    showCompletedTasks: true,
+    autoArchiveCompleted: false,
+    sortBy: 'dueDate',
+    groupByCategory: false
+  },
+  universities: {
+    defaultLanguage: 'English',
+    showDeadlineWarnings: true,
+    warningDaysBefore: 30,
+    sortBy: 'deadline',
+    showOnlyActive: false
+  },
+  finance: {
+    budgetWarningThreshold: 80,
+    showCategoryBreakdown: true,
+    defaultCategory: 'Other',
+    trackActualAmounts: true,
+    showCurrencyConverter: true
+  },
+  appearance: {
+    compactMode: false,
+    showAnimations: true,
+    fontSize: 'medium',
+    colorScheme: 'blue',
+    sidebarCollapsed: false
+  },
+  data: {
+    autoSave: true,
+    backupFrequency: 'weekly',
+    exportFormat: 'json',
+    syncEnabled: false
+  }
+}
+
+interface ThemeContextType {
+  settings: Settings
+  updateSettings: (newSettings: Partial<Settings>) => void
+  resetSettings: () => void
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [settings, setSettings] = useState<Settings>(defaultSettings)
+  const [mounted, setMounted] = useState(false)
+
+  // Load settings on mount
+  useEffect(() => {
+    setMounted(true)
+    
+    try {
+      const savedSettings = localStorage.getItem('settings')
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings)
+        setSettings({ ...defaultSettings, ...parsed })
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error)
+    }
+  }, [])
+
+  // Save settings when they change
+  useEffect(() => {
+    if (mounted) {
+      try {
+        localStorage.setItem('settings', JSON.stringify(settings))
+      } catch (error) {
+        console.error('Error saving settings:', error)
+      }
+    }
+  }, [settings, mounted])
+
+  // Apply theme to document
+  useEffect(() => {
+    if (!mounted) return
+
+    const applyTheme = () => {
+      const root = document.documentElement
+      
+      if (settings.theme === 'system') {
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        root.classList.toggle('dark', systemPrefersDark)
+      } else {
+        root.classList.toggle('dark', settings.theme === 'dark')
+      }
+    }
+
+    applyTheme()
+
+    if (settings.theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      mediaQuery.addEventListener('change', applyTheme)
+      return () => mediaQuery.removeEventListener('change', applyTheme)
+    }
+  }, [settings.theme, mounted])
+
+  const updateSettings = (newSettings: Partial<Settings>) => {
+    setSettings(prev => ({ ...prev, ...newSettings }))
+  }
+
+  const resetSettings = () => {
+    setSettings(defaultSettings)
+  }
+
+  // Always render children, even during SSR
+  return (
+    <ThemeContext.Provider value={{ settings, updateSettings, resetSettings }}>
+      {children}
+    </ThemeContext.Provider>
+  )
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext)
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider')
+  }
+  return context
+} 

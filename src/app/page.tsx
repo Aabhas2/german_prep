@@ -1,103 +1,350 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { Layout } from '@/components/layout/Layout'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { ProgressBar } from '@/components/ui/ProgressBar'
+import { Modal } from '@/components/ui/Modal'
+import { TaskForm } from '@/components/forms/TaskForm'
+import { ClientCurrency } from '@/components/ui/ClientCurrency'
+import { Plus, Calendar, BookOpen, DollarSign, FileText, CheckCircle } from 'lucide-react'
+import { useTheme } from '@/contexts/ThemeContext'
+import { mockTasks, mockUniversities, mockExams, mockFinanceItems } from '@/data/mockData'
+import { formatDate, formatCurrency, convertCurrency } from '@/lib/utils'
+import { Task, University, Exam, FinanceItem } from '@/types'
+
+export default function Dashboard() {
+  const router = useRouter()
+  const { settings } = useTheme()
+  
+  // Simple state without complex localStorage logic
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [universities, setUniversities] = useState<University[]>([])
+  const [exams, setExams] = useState<Exam[]>([])
+  const [financeItems, setFinanceItems] = useState<FinanceItem[]>([])
+  const [mounted, setMounted] = useState(false)
+  
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | undefined>()
+
+  // Load data only on client side
+  useEffect(() => {
+    setMounted(true)
+    
+    // Load from localStorage or use mock data
+    try {
+      const savedTasks = localStorage.getItem('tasks')
+      const savedUniversities = localStorage.getItem('universities')
+      const savedExams = localStorage.getItem('exams')
+      const savedFinanceItems = localStorage.getItem('financeItems')
+      
+      // Parse and convert date strings back to Date objects
+      const parsedTasks = savedTasks ? JSON.parse(savedTasks).map((task: any) => ({
+        ...task,
+        dueDate: task.dueDate ? new Date(task.dueDate) : null,
+        createdAt: task.createdAt ? new Date(task.createdAt) : new Date()
+      })) : mockTasks
+      
+      const parsedUniversities = savedUniversities ? JSON.parse(savedUniversities).map((uni: any) => ({
+        ...uni,
+        applicationDeadline: uni.applicationDeadline ? new Date(uni.applicationDeadline) : new Date()
+      })) : mockUniversities
+      
+      const parsedExams = savedExams ? JSON.parse(savedExams).map((exam: any) => ({
+        ...exam,
+        plannedDate: exam.plannedDate ? new Date(exam.plannedDate) : null,
+        actualDate: exam.actualDate ? new Date(exam.actualDate) : null
+      })) : mockExams
+      
+      setTasks(parsedTasks)
+      setUniversities(parsedUniversities)
+      setExams(parsedExams)
+      setFinanceItems(savedFinanceItems ? JSON.parse(savedFinanceItems) : mockFinanceItems)
+    } catch (error) {
+      console.error('Error loading data:', error)
+      // Fallback to mock data
+      setTasks(mockTasks)
+      setUniversities(mockUniversities)
+      setExams(mockExams)
+      setFinanceItems(mockFinanceItems)
+    }
+  }, [])
+
+  // Save tasks when they change
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem('tasks', JSON.stringify(tasks))
+    }
+  }, [tasks, mounted])
+
+  // Memoized calculations for performance
+  const stats = useMemo(() => {
+    const totalTasks = tasks.length
+    const completedTasks = tasks.filter(task => task.status === 'Completed').length
+    const overallProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
+    
+    return { totalTasks, completedTasks, overallProgress }
+  }, [tasks])
+
+  // Memoized upcoming deadlines
+  const upcomingDeadlines = useMemo(() => {
+    try {
+      return [
+        ...tasks.filter(task => task.dueDate && task.status !== 'Completed')
+          .map(task => ({ type: 'Task', title: task.title, date: task.dueDate instanceof Date ? task.dueDate : new Date(task.dueDate!) })),
+        ...universities.filter(uni => uni.applicationDeadline)
+          .map(uni => ({ type: 'Application', title: uni.name, date: uni.applicationDeadline instanceof Date ? uni.applicationDeadline : new Date(uni.applicationDeadline) })),
+        ...exams.filter(exam => exam.plannedDate)
+          .map(exam => ({ type: 'Exam', title: exam.name, date: exam.plannedDate instanceof Date ? exam.plannedDate : new Date(exam.plannedDate!) }))
+      ].filter(item => !isNaN(item.date.getTime())) // Filter out invalid dates
+       .sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 5)
+    } catch (error) {
+      console.error('Error processing deadlines:', error)
+      return []
+    }
+  }, [tasks, universities, exams])
+
+  // Memoized financial calculations
+  const financialStats = useMemo(() => {
+    const convertAmount = (amount: number) => {
+      return convertCurrency(amount, 'EUR', settings.currency.primary, settings.currency.exchangeRates)
+    }
+    
+    const totalEstimated = financeItems.reduce((sum, item) => sum + convertAmount(item.estimatedAmount), 0)
+    const totalPaid = financeItems.filter(item => item.paid).reduce((sum, item) => sum + convertAmount(item.actualAmount || item.estimatedAmount), 0)
+    
+    return { totalEstimated, totalPaid }
+  }, [financeItems, settings.currency.primary, settings.currency.exchangeRates])
+
+  // Handler functions
+  const handleAddTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt'>) => {
+    const newTask: Task = {
+      ...taskData,
+      id: Date.now().toString(),
+      createdAt: new Date()
+    }
+    setTasks(prev => [...prev, newTask])
+    setIsTaskModalOpen(false)
+  }, [])
+
+  const handleEditTask = useCallback((task: Task) => {
+    setEditingTask(task)
+    setIsTaskModalOpen(true)
+  }, [])
+
+  const handleUpdateTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt'>) => {
+    if (!editingTask) return
+    
+    const updatedTask: Task = {
+      ...taskData,
+      id: editingTask.id,
+      createdAt: editingTask.createdAt
+    }
+    setTasks(prev => prev.map(task => task.id === editingTask.id ? updatedTask : task))
+    setIsTaskModalOpen(false)
+    setEditingTask(undefined)
+  }, [editingTask])
+
+  const handleQuickAction = useCallback((action: string) => {
+    switch (action) {
+      case 'university':
+        router.push('/universities')
+        break
+      case 'exam':
+        router.push('/exams')
+        break
+      case 'note':
+        router.push('/notes')
+        break
+      case 'task':
+        setIsTaskModalOpen(true)
+        break
+    }
+  }, [router])
+
+  // Show nothing during SSR
+  if (!mounted) {
+    return null
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <Layout>
+      <div className="space-y-8">
+        {/* Welcome Section */}
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Welcome to Your Germany Prep Hub</h1>
+          <p className="text-gray-600 dark:text-gray-400">Track your study abroad preparation journey</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card>
+            <CardContent className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Universities</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{universities.length}</p>
+              </div>
+              <BookOpen className="h-8 w-8 text-blue-600" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed Tasks</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.completedTasks}/{stats.totalTasks}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Exams</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{exams.length}</p>
+              </div>
+              <FileText className="h-8 w-8 text-purple-600" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Budget Used</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  <ClientCurrency 
+                    amount={financialStats.totalPaid} 
+                    currency={settings.currency.primary} 
+                    showSymbol={settings.currency.displaySymbol}
+                  />
+                </p>
+              </div>
+              <DollarSign className="h-8 w-8 text-yellow-600" />
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Overall Progress */}
+          {settings.dashboard.showProgressBars && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Overall Progress</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ProgressBar 
+                  value={stats.overallProgress} 
+                  label="Preparation Completion" 
+                  className="mb-4" 
+                />
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600 dark:text-gray-400">Total Tasks:</span>
+                    <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{stats.totalTasks}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600 dark:text-gray-400">Completed:</span>
+                    <span className="ml-2 font-medium text-green-600">{stats.completedTasks}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Upcoming Deadlines */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Upcoming Deadlines</CardTitle>
+              <Calendar className="h-5 w-5 text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              {upcomingDeadlines.length > 0 ? (
+                <div className="space-y-3">
+                  {upcomingDeadlines.map((deadline, index) => (
+                    <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{deadline.title}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{deadline.type}</p>
+                      </div>
+                      <Badge variant="default">
+                        {formatDate(deadline.date)}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400">No upcoming deadlines</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Button 
+                variant="outline" 
+                onClick={() => handleQuickAction('university')}
+                className="h-20 flex flex-col items-center justify-center space-y-2"
+              >
+                <BookOpen className="h-6 w-6" />
+                <span>Add University</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => handleQuickAction('exam')}
+                className="h-20 flex flex-col items-center justify-center space-y-2"
+              >
+                <FileText className="h-6 w-6" />
+                <span>Add Exam</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => handleQuickAction('task')}
+                className="h-20 flex flex-col items-center justify-center space-y-2"
+              >
+                <Plus className="h-6 w-6" />
+                <span>Add Task</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => handleQuickAction('note')}
+                className="h-20 flex flex-col items-center justify-center space-y-2"
+              >
+                <FileText className="h-6 w-6" />
+                <span>Add Note</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Task Modal */}
+        <Modal
+          isOpen={isTaskModalOpen}
+          onClose={() => {
+            setIsTaskModalOpen(false)
+            setEditingTask(undefined)
+          }}
+          title={editingTask ? 'Edit Task' : 'Add New Task'}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+          <TaskForm
+            task={editingTask}
+            onSubmit={editingTask ? handleUpdateTask : handleAddTask}
+            onCancel={() => {
+              setIsTaskModalOpen(false)
+              setEditingTask(undefined)
+            }}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
-}
+        </Modal>
+      </div>
+    </Layout>
+  )
+} 
