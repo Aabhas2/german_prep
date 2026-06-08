@@ -4,16 +4,21 @@ import { useState } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { User, Bell, Download, Trash2, Moon, Sun, Settings as SettingsIcon, Palette, Eye, Database, Zap, DollarSign, RefreshCw } from 'lucide-react'
+import { User, Bell, Download, Trash2, Moon, Sun, Settings as SettingsIcon, Palette, Zap, DollarSign, RefreshCw } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
-import { updateExchangeRates, shouldUpdateRates, formatExchangeRate, getExchangeRateDescription } from '@/lib/exchangeRates'
+import { useAuth } from '@/contexts/AuthContext'
+import { countriesConfig } from '@/data/countries'
+import { dbTasks } from '@/lib/db'
+import { updateExchangeRates, formatExchangeRate } from '@/lib/exchangeRates'
 
 export default function SettingsPage() {
   const { settings, updateSettings } = useTheme()
   const [isUpdatingRates, setIsUpdatingRates] = useState(false)
   const [rateUpdateStatus, setRateUpdateStatus] = useState<string>('')
 
-  const handlePersonalDetailsChange = (field: string, value: string) => {
+  const { user } = useAuth()
+
+  const handlePersonalDetailsChange = async (field: string, value: string) => {
     updateSettings({
       ...settings,
       personalDetails: {
@@ -21,6 +26,42 @@ export default function SettingsPage() {
         [field]: value
       }
     })
+
+    if (field === 'targetCountry') {
+      const config = countriesConfig[value]
+      if (config && confirm(`Would you like to import the standard 2026-2027 preparation phases and milestones for ${value} into your task manager?`)) {
+        const newTasks = config.stages.map((stage, idx) => ({
+          title: stage.title,
+          description: `${stage.phase}: ${stage.description}`,
+          category: 'Preparation',
+          priority: 'Medium' as const,
+          status: 'To Do' as const,
+          dueDate: new Date(new Date().getFullYear(), new Date().getMonth() + idx + 1, 1)
+        }))
+
+        if (user) {
+          try {
+            await Promise.all(newTasks.map(t => dbTasks.add(user.uid, t)))
+            alert('Tasks successfully synced to Cloud Firestore!')
+          } catch (e) {
+            console.error('Failed to sync tasks to cloud:', e)
+          }
+        } else {
+          try {
+            const savedTasks = JSON.parse(localStorage.getItem('tasks') || '[]')
+            const tasksWithIds = newTasks.map((t, idx) => ({
+              ...t,
+              id: `stage-${Date.now()}-${idx}`,
+              createdAt: new Date()
+            }))
+            localStorage.setItem('tasks', JSON.stringify([...savedTasks, ...tasksWithIds]))
+            alert('Tasks successfully imported to local storage!')
+          } catch (e) {
+            console.error('Failed to save tasks locally:', e)
+          }
+        }
+      }
+    }
   }
 
   const handleSettingChange = (section: keyof typeof settings, field: string, value: any) => {
@@ -222,9 +263,10 @@ export default function SettingsPage() {
                 <select
                   value={settings.personalDetails.targetCountry}
                   onChange={(e) => handlePersonalDetailsChange('targetCountry', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="Germany">Germany</option>
+                  <option value="Canada">Canada</option>
                   <option value="Netherlands">Netherlands</option>
                   <option value="Switzerland">Switzerland</option>
                   <option value="Austria">Austria</option>

@@ -1,80 +1,13 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { useAuth } from './AuthContext'
+import { dbSettings } from '@/lib/db'
+import { Settings } from '@/types'
 
-// Types
-export type Theme = 'light' | 'dark' | 'system'
 
-export interface CurrencySettings {
-  primary: string
-  secondary?: string
-  displaySymbol: boolean
-  exchangeRates: Record<string, number>
-  lastUpdated?: string
-  autoUpdate?: boolean
-}
 
-export interface DashboardSettings {
-  showProgressBars: boolean
-  showRecentTasks: boolean
-  showFinancialOverview: boolean
-  showQuickActions: boolean
-  tasksToShow: number
-}
-
-export interface Settings {
-  theme: Theme
-  personalDetails: {
-    name: string
-    email: string
-    targetCountry: string
-    targetStartDate: string
-  }
-  currency: CurrencySettings
-  dashboard: DashboardSettings
-  notifications: {
-    deadlineReminders: boolean
-    taskUpdates: boolean
-    emailNotifications: boolean
-  }
-  tasks: {
-    defaultPriority: 'Low' | 'Medium' | 'High'
-    defaultCategory: string
-    showCompletedTasks: boolean
-    autoArchiveCompleted: boolean
-    sortBy: 'dueDate' | 'priority' | 'created' | 'title'
-    groupByCategory: boolean
-  }
-  universities: {
-    defaultLanguage: 'English' | 'German' | 'Both'
-    showDeadlineWarnings: boolean
-    warningDaysBefore: number
-    sortBy: 'deadline' | 'name' | 'status'
-    showOnlyActive: boolean
-  }
-  finance: {
-    budgetWarningThreshold: number
-    showCategoryBreakdown: boolean
-    defaultCategory: 'Application' | 'Travel' | 'Tuition' | 'Living' | 'Other'
-    trackActualAmounts: boolean
-    showCurrencyConverter: boolean
-  }
-  appearance: {
-    compactMode: boolean
-    showAnimations: boolean
-    fontSize: 'small' | 'medium' | 'large'
-    colorScheme: 'blue' | 'green' | 'purple' | 'red' | 'orange'
-    sidebarCollapsed: boolean
-  }
-  data: {
-    autoSave: boolean
-    backupFrequency: 'daily' | 'weekly' | 'monthly'
-    exportFormat: 'json' | 'csv'
-    syncEnabled: boolean
-  }
-}
-
-const defaultSettings: Settings = {
+export const defaultSettings: Settings = {
   theme: 'system',
   personalDetails: {
     name: '',
@@ -155,11 +88,12 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<Settings>(defaultSettings)
   const [mounted, setMounted] = useState(false)
+  const { user } = useAuth()
 
   // Load settings on mount
   useEffect(() => {
     setMounted(true)
-    
+
     try {
       const savedSettings = localStorage.getItem('settings')
       if (savedSettings) {
@@ -171,16 +105,41 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Sync settings from Firebase if user is logged in
+  useEffect(() => {
+    if (!mounted || !user) return
+
+    const loadCloudSettings = async () => {
+      try {
+        const cloudSettings = await dbSettings.fetch(user.uid)
+        if (cloudSettings) {
+          setSettings(cloudSettings)
+        } else {
+          // If no settings exist in cloud, write current settings
+          await dbSettings.update(user.uid, settings)
+        }
+      } catch (error) {
+        console.error('Error loading settings from cloud:', error)
+      }
+    }
+
+    loadCloudSettings()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, mounted])
+
   // Save settings when they change
   useEffect(() => {
     if (mounted) {
       try {
         localStorage.setItem('settings', JSON.stringify(settings))
+        if (user) {
+          dbSettings.update(user.uid, settings)
+        }
       } catch (error) {
         console.error('Error saving settings:', error)
       }
     }
-  }, [settings, mounted])
+  }, [settings, mounted, user])
 
   // Apply theme to document
   useEffect(() => {
@@ -188,7 +147,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     const applyTheme = () => {
       const root = document.documentElement
-      
+
       if (settings.theme === 'system') {
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
         root.classList.toggle('dark', systemPrefersDark)

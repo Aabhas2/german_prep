@@ -8,39 +8,55 @@ import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { UniversityForm } from '@/components/forms/UniversityForm'
 import { Plus, ExternalLink, MapPin, Calendar, Globe, Edit, Trash2 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 import { mockUniversities } from '@/data/mockData'
+import { dbUniversities } from '@/lib/db'
 import { formatDate } from '@/lib/utils'
 import { University } from '@/types'
 
 export default function UniversitiesPage() {
+  const { user } = useAuth()
   const [universities, setUniversities] = useState<University[]>([])
   const [mounted, setMounted] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingUniversity, setEditingUniversity] = useState<University | undefined>()
 
-  // Load data on mount
+  // Load data on mount / auth state change
   useEffect(() => {
     setMounted(true)
     
-    try {
-      const savedUniversities = localStorage.getItem('universities')
-      const parsedUniversities = savedUniversities ? JSON.parse(savedUniversities).map((uni: any) => ({
-        ...uni,
-        applicationDeadline: uni.applicationDeadline ? new Date(uni.applicationDeadline) : new Date()
-      })) : mockUniversities
-      setUniversities(parsedUniversities)
-    } catch (error) {
-      console.error('Error loading universities:', error)
-      setUniversities(mockUniversities)
+    const loadUnis = async () => {
+      if (user) {
+        try {
+          const cloudUnis = await dbUniversities.fetch(user.uid)
+          setUniversities(cloudUnis)
+        } catch (error) {
+          console.error('Error fetching universities from cloud:', error)
+        }
+      } else {
+        try {
+          const savedUniversities = localStorage.getItem('universities')
+          const parsedUniversities = savedUniversities ? JSON.parse(savedUniversities).map((uni: any) => ({
+            ...uni,
+            applicationDeadline: uni.applicationDeadline ? new Date(uni.applicationDeadline) : new Date()
+          })) : mockUniversities
+          setUniversities(parsedUniversities)
+        } catch (error) {
+          console.error('Error loading universities:', error)
+          setUniversities(mockUniversities)
+        }
+      }
     }
-  }, [])
 
-  // Save universities when they change
+    loadUnis()
+  }, [user])
+
+  // Save universities when they change (local guest mode only)
   useEffect(() => {
-    if (mounted) {
+    if (mounted && !user) {
       localStorage.setItem('universities', JSON.stringify(universities))
     }
-  }, [universities, mounted])
+  }, [universities, mounted, user])
 
   const getStatusVariant = (status: University['status']) => {
     switch (status) {
@@ -51,12 +67,21 @@ export default function UniversitiesPage() {
     }
   }
 
-  const handleAddUniversity = (universityData: Omit<University, 'id'>) => {
-    const newUniversity: University = {
-      ...universityData,
-      id: Date.now().toString()
+  const handleAddUniversity = async (universityData: Omit<University, 'id'>) => {
+    if (user) {
+      try {
+        const added = await dbUniversities.add(user.uid, universityData)
+        setUniversities(prev => [...prev, added])
+      } catch (error) {
+        console.error('Error adding university:', error)
+      }
+    } else {
+      const newUniversity: University = {
+        ...universityData,
+        id: Date.now().toString()
+      }
+      setUniversities(prev => [...prev, newUniversity])
     }
-    setUniversities(prev => [...prev, newUniversity])
     setIsModalOpen(false)
   }
 
@@ -65,28 +90,53 @@ export default function UniversitiesPage() {
     setIsModalOpen(true)
   }
 
-  const handleUpdateUniversity = (universityData: Omit<University, 'id'>) => {
+  const handleUpdateUniversity = async (universityData: Omit<University, 'id'>) => {
     if (!editingUniversity) return
     
     const updatedUniversity: University = {
       ...universityData,
       id: editingUniversity.id
     }
-    setUniversities(prev => prev.map(uni => uni.id === editingUniversity.id ? updatedUniversity : uni))
+
+    if (user) {
+      try {
+        await dbUniversities.update(user.uid, updatedUniversity)
+        setUniversities(prev => prev.map(uni => uni.id === editingUniversity.id ? updatedUniversity : uni))
+      } catch (error) {
+        console.error('Error updating university:', error)
+      }
+    } else {
+      setUniversities(prev => prev.map(uni => uni.id === editingUniversity.id ? updatedUniversity : uni))
+    }
     setIsModalOpen(false)
     setEditingUniversity(undefined)
   }
 
-  const handleDeleteUniversity = (id: string) => {
+  const handleDeleteUniversity = async (id: string) => {
     if (confirm('Are you sure you want to delete this university?')) {
-      setUniversities(prev => prev.filter(uni => uni.id !== id))
+      if (user) {
+        try {
+          await dbUniversities.delete(user.uid, id)
+          setUniversities(prev => prev.filter(uni => uni.id !== id))
+        } catch (error) {
+          console.error('Error deleting university:', error)
+        }
+      } else {
+        setUniversities(prev => prev.filter(uni => uni.id !== id))
+      }
     }
   }
 
-  const handleStatusChange = (id: string, newStatus: University['status']) => {
-    setUniversities(prev => prev.map(uni => 
-      uni.id === id ? { ...uni, status: newStatus } : uni
-    ))
+  const handleStatusChange = async (id: string, newStatus: University['status']) => {
+    setUniversities(prev => {
+      const matched = prev.find(uni => uni.id === id)
+      if (!matched) return prev
+      const updated = { ...matched, status: newStatus }
+      if (user) {
+        dbUniversities.update(user.uid, updated).catch(e => console.error('Error updating status:', e))
+      }
+      return prev.map(uni => uni.id === id ? updated : uni)
+    })
   }
 
   const handleVisitWebsite = (website: string) => {

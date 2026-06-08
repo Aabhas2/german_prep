@@ -7,43 +7,59 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { TaskForm } from '@/components/forms/TaskForm'
-import { Plus, Calendar, AlertTriangle, Edit, Trash2, CheckCircle } from 'lucide-react'
+import { Plus, Calendar, AlertTriangle, Edit, Trash2 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { mockTasks } from '@/data/mockData'
+import { dbTasks } from '@/lib/db'
 import { formatDate } from '@/lib/utils'
 import { Task } from '@/types'
 
 export default function TasksPage() {
   const { settings } = useTheme()
+  const { user } = useAuth()
   const [tasks, setTasks] = useState<Task[]>([])
   const [mounted, setMounted] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | undefined>()
 
-  // Load data on mount
+  // Load data on mount / auth state change
   useEffect(() => {
     setMounted(true)
     
-    try {
-      const savedTasks = localStorage.getItem('tasks')
-      const parsedTasks = savedTasks ? JSON.parse(savedTasks).map((task: any) => ({
-        ...task,
-        dueDate: task.dueDate ? new Date(task.dueDate) : null,
-        createdAt: task.createdAt ? new Date(task.createdAt) : new Date()
-      })) : mockTasks
-      setTasks(parsedTasks)
-    } catch (error) {
-      console.error('Error loading tasks:', error)
-      setTasks(mockTasks)
+    const loadTasks = async () => {
+      if (user) {
+        try {
+          const cloudTasks = await dbTasks.fetch(user.uid)
+          setTasks(cloudTasks)
+        } catch (error) {
+          console.error('Error fetching cloud tasks:', error)
+        }
+      } else {
+        try {
+          const savedTasks = localStorage.getItem('tasks')
+          const parsedTasks = savedTasks ? JSON.parse(savedTasks).map((task: any) => ({
+            ...task,
+            dueDate: task.dueDate ? new Date(task.dueDate) : null,
+            createdAt: task.createdAt ? new Date(task.createdAt) : new Date()
+          })) : mockTasks
+          setTasks(parsedTasks)
+        } catch (error) {
+          console.error('Error loading tasks:', error)
+          setTasks(mockTasks)
+        }
+      }
     }
-  }, [])
 
-  // Save tasks when they change
+    loadTasks()
+  }, [user])
+
+  // Save tasks when they change (local guest mode only)
   useEffect(() => {
-    if (mounted) {
+    if (mounted && !user) {
       localStorage.setItem('tasks', JSON.stringify(tasks))
     }
-  }, [tasks, mounted])
+  }, [tasks, mounted, user])
 
   const getPriorityVariant = useCallback((priority: Task['priority']) => {
     switch (priority) {
@@ -102,22 +118,31 @@ export default function TasksPage() {
     }
   }, [tasks, settings.tasks.showCompletedTasks, settings.tasks.sortBy])
 
-  const handleAddTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt'>) => {
-    const newTask: Task = {
-      ...taskData,
-      id: Date.now().toString(),
-      createdAt: new Date()
+  const handleAddTask = useCallback(async (taskData: Omit<Task, 'id' | 'createdAt'>) => {
+    if (user) {
+      try {
+        const added = await dbTasks.add(user.uid, taskData)
+        setTasks(prev => [...prev, added])
+      } catch (error) {
+        console.error('Error adding task:', error)
+      }
+    } else {
+      const newTask: Task = {
+        ...taskData,
+        id: Date.now().toString(),
+        createdAt: new Date()
+      }
+      setTasks(prev => [...prev, newTask])
     }
-    setTasks(prev => [...prev, newTask])
     setIsModalOpen(false)
-  }, [])
+  }, [user])
 
   const handleEditTask = useCallback((task: Task) => {
     setEditingTask(task)
     setIsModalOpen(true)
   }, [])
 
-  const handleUpdateTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt'>) => {
+  const handleUpdateTask = useCallback(async (taskData: Omit<Task, 'id' | 'createdAt'>) => {
     if (!editingTask) return
     
     const updatedTask: Task = {
@@ -125,22 +150,49 @@ export default function TasksPage() {
       id: editingTask.id,
       createdAt: editingTask.createdAt
     }
-    setTasks(prev => prev.map(task => task.id === editingTask.id ? updatedTask : task))
+
+    if (user) {
+      try {
+        await dbTasks.update(user.uid, updatedTask)
+        setTasks(prev => prev.map(task => task.id === editingTask.id ? updatedTask : task))
+      } catch (error) {
+        console.error('Error updating task:', error)
+      }
+    } else {
+      setTasks(prev => prev.map(task => task.id === editingTask.id ? updatedTask : task))
+    }
     setIsModalOpen(false)
     setEditingTask(undefined)
-  }, [editingTask])
+  }, [editingTask, user])
 
-  const handleDeleteTask = useCallback((id: string) => {
+  const handleDeleteTask = useCallback(async (id: string) => {
     if (confirm('Are you sure you want to delete this task?')) {
-      setTasks(prev => prev.filter(task => task.id !== id))
+      if (user) {
+        try {
+          await dbTasks.delete(user.uid, id)
+          setTasks(prev => prev.filter(task => task.id !== id))
+        } catch (error) {
+          console.error('Error deleting task:', error)
+        }
+      } else {
+        setTasks(prev => prev.filter(task => task.id !== id))
+      }
     }
-  }, [])
+  }, [user])
 
-  const handleStatusChange = useCallback((id: string, newStatus: Task['status']) => {
-    setTasks(prev => prev.map(task => 
-      task.id === id ? { ...task, status: newStatus } : task
-    ))
-  }, [])
+  const handleStatusChange = useCallback(async (id: string, newStatus: Task['status']) => {
+    setTasks(prev => {
+      const matched = prev.find(t => t.id === id)
+      if (!matched) return prev
+      const updated = { ...matched, status: newStatus }
+      
+      if (user) {
+        dbTasks.update(user.uid, updated).catch(e => console.error('Status sync error:', e))
+      }
+      
+      return prev.map(task => task.id === id ? updated : task)
+    })
+  }, [user])
 
   const TaskCard = React.memo(({ task }: { task: Task }) => (
     <Card className="mb-4 hover:shadow-md transition-shadow">

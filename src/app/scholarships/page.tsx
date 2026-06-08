@@ -7,40 +7,56 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { Plus, Calendar, ExternalLink, DollarSign, Award, Edit, Trash2 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 import { mockScholarships } from '@/data/mockData'
+import { dbScholarships } from '@/lib/db'
 import { formatDate } from '@/lib/utils'
 import { Scholarship } from '@/types'
 import { ScholarshipForm } from '@/components/forms/ScholarshipForm'
 
 export default function ScholarshipsPage() {
+  const { user } = useAuth()
   const [scholarships, setScholarships] = useState<Scholarship[]>([])
   const [mounted, setMounted] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingScholarship, setEditingScholarship] = useState<Scholarship | undefined>(undefined)
 
-  // Load data on mount
+  // Load data on mount / auth state change
   useEffect(() => {
     setMounted(true)
     
-    try {
-      const savedScholarships = localStorage.getItem('scholarships')
-      const parsedScholarships = savedScholarships ? JSON.parse(savedScholarships).map((scholarship: any) => ({
-        ...scholarship,
-        deadline: scholarship.deadline ? new Date(scholarship.deadline) : new Date()
-      })) : mockScholarships
-      setScholarships(parsedScholarships)
-    } catch (error) {
-      console.error('Error loading scholarships:', error)
-      setScholarships(mockScholarships)
+    const loadScholarships = async () => {
+      if (user) {
+        try {
+          const cloudScholarships = await dbScholarships.fetch(user.uid)
+          setScholarships(cloudScholarships)
+        } catch (error) {
+          console.error('Error fetching cloud scholarships:', error)
+        }
+      } else {
+        try {
+          const savedScholarships = localStorage.getItem('scholarships')
+          const parsedScholarships = savedScholarships ? JSON.parse(savedScholarships).map((scholarship: any) => ({
+            ...scholarship,
+            deadline: scholarship.deadline ? new Date(scholarship.deadline) : new Date()
+          })) : mockScholarships
+          setScholarships(parsedScholarships)
+        } catch (error) {
+          console.error('Error loading scholarships:', error)
+          setScholarships(mockScholarships)
+        }
+      }
     }
-  }, [])
 
-  // Save scholarships when they change
+    loadScholarships()
+  }, [user])
+
+  // Save scholarships locally (guest mode only)
   useEffect(() => {
-    if (mounted) {
+    if (mounted && !user) {
       localStorage.setItem('scholarships', JSON.stringify(scholarships))
     }
-  }, [scholarships, mounted])
+  }, [scholarships, mounted, user])
 
   const getStatusVariant = (status: Scholarship['status']) => {
     switch (status) {
@@ -61,21 +77,49 @@ export default function ScholarshipsPage() {
     setIsModalOpen(true)
   }, [])
 
-  const handleDeleteScholarship = useCallback((scholarshipId: string) => {
+  const handleDeleteScholarship = useCallback(async (scholarshipId: string) => {
     if (confirm('Are you sure you want to delete this scholarship?')) {
-      setScholarships(prev => prev.filter(s => s.id !== scholarshipId))
+      if (user) {
+        try {
+          await dbScholarships.delete(user.uid, scholarshipId)
+          setScholarships(prev => prev.filter(s => s.id !== scholarshipId))
+        } catch (error) {
+          console.error('Error deleting scholarship:', error)
+        }
+      } else {
+        setScholarships(prev => prev.filter(s => s.id !== scholarshipId))
+      }
     }
-  }, [])
+  }, [user])
 
-  const handleSaveScholarship = useCallback((scholarship: Scholarship) => {
+  const handleSaveScholarship = useCallback(async (scholarship: Scholarship) => {
     if (editingScholarship) {
-      setScholarships(prev => prev.map(s => s.id === scholarship.id ? scholarship : s))
+      if (user) {
+        try {
+          await dbScholarships.update(user.uid, scholarship)
+          setScholarships(prev => prev.map(s => s.id === scholarship.id ? scholarship : s))
+        } catch (error) {
+          console.error('Error updating scholarship:', error)
+        }
+      } else {
+        setScholarships(prev => prev.map(s => s.id === scholarship.id ? scholarship : s))
+      }
     } else {
-      setScholarships(prev => [...prev, scholarship])
+      if (user) {
+        try {
+          const { id, ...data } = scholarship
+          const added = await dbScholarships.add(user.uid, data)
+          setScholarships(prev => [...prev, added])
+        } catch (error) {
+          console.error('Error adding scholarship:', error)
+        }
+      } else {
+        setScholarships(prev => [...prev, scholarship])
+      }
     }
     setIsModalOpen(false)
     setEditingScholarship(undefined)
-  }, [editingScholarship])
+  }, [editingScholarship, user])
 
   const handleCancelEdit = useCallback(() => {
     setIsModalOpen(false)
@@ -86,20 +130,26 @@ export default function ScholarshipsPage() {
     window.open(url, '_blank', 'noopener,noreferrer')
   }
 
-  const handleApplyNow = useCallback((scholarship: Scholarship) => {
-    // Mark as applied and open website if available
-    setScholarships(prev => prev.map(s => 
-      s.id === scholarship.id 
-        ? { ...s, status: 'Applied' as Scholarship['status'] }
-        : s
-    ))
+  const handleApplyNow = useCallback(async (scholarship: Scholarship) => {
+    const updated = { ...scholarship, status: 'Applied' as Scholarship['status'] }
+
+    if (user) {
+      try {
+        await dbScholarships.update(user.uid, updated)
+        setScholarships(prev => prev.map(s => s.id === scholarship.id ? updated : s))
+      } catch (error) {
+        console.error('Error applying scholarship:', error)
+      }
+    } else {
+      setScholarships(prev => prev.map(s => s.id === scholarship.id ? updated : s))
+    }
     
     if (scholarship.website) {
       window.open(scholarship.website, '_blank', 'noopener,noreferrer')
     } else {
       alert('Application submitted! Please check your email for further instructions.')
     }
-  }, [])
+  }, [user])
 
   const ScholarshipCard = ({ scholarship }: { scholarship: Scholarship }) => (
     <Card className="hover:shadow-md transition-shadow">

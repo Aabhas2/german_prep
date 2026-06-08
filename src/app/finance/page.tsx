@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Plus, DollarSign, TrendingUp, TrendingDown, CheckCircle, X, Edit, Settings, Target, Trash2 } from 'lucide-react'
-import { useLocalStorage } from '@/hooks/useLocalStorage'
+import { useTheme } from '@/contexts/ThemeContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { CurrencyToggle } from '@/components/ui/CurrencyToggle'
 import { mockFinanceItems, mockSavingsGoals } from '@/data/mockData'
-import { FinanceItem, SavingsGoal, AppSettings } from '@/types'
-import { formatCurrency, convertCurrency, defaultSettings, formatDate } from '@/lib/utils'
+import { FinanceItem, SavingsGoal } from '@/types'
+import { dbFinance, dbSavingsGoals } from '@/lib/db'
+import { formatCurrency, convertCurrency, formatDate } from '@/lib/utils'
 import { ClientCurrency } from '@/components/ui/ClientCurrency'
 import { SavingsForm } from '@/components/forms/SavingsForm'
 import { Modal } from '@/components/ui/Modal'
@@ -20,14 +22,63 @@ import { useIsClient } from '@/hooks/useIsClient'
 
 export default function FinancePage() {
   const isClient = useIsClient()
-  const [financeItems, setFinanceItems] = useLocalStorage<FinanceItem[]>('financeItems', mockFinanceItems)
-  const [savingsGoals, setSavingsGoals] = useLocalStorage<SavingsGoal[]>('savingsGoals', mockSavingsGoals)
-  const [settings, setSettings] = useLocalStorage<AppSettings>('appSettings', defaultSettings)
+  const { settings, updateSettings } = useTheme()
+  const { user } = useAuth()
+  
+  const [financeItems, setFinanceItems] = useState<FinanceItem[]>([])
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([])
   const [amount, setAmount] = useState('')
   const [fromCurrency, setFromCurrency] = useState<'USD' | 'EUR' | 'INR'>('EUR')
   const [toCurrency, setToCurrency] = useState<'USD' | 'EUR' | 'INR'>('USD')
   const [isSavingsModalOpen, setIsSavingsModalOpen] = useState(false)
   const [editingSavingsGoal, setEditingSavingsGoal] = useState<SavingsGoal | undefined>()
+  const [mounted, setMounted] = useState(false)
+
+  // Load data on mount / auth state change
+  useEffect(() => {
+    setMounted(true)
+    
+    const loadFinances = async () => {
+      if (user) {
+        try {
+          const [cloudFinance, cloudSavings] = await Promise.all([
+            dbFinance.fetch(user.uid),
+            dbSavingsGoals.fetch(user.uid)
+          ])
+          setFinanceItems(cloudFinance)
+          setSavingsGoals(cloudSavings)
+        } catch (error) {
+          console.error('Error fetching finance data from cloud:', error)
+        }
+      } else {
+        try {
+          const savedItems = localStorage.getItem('financeItems')
+          const savedSavings = localStorage.getItem('savingsGoals')
+          
+          setFinanceItems(savedItems ? JSON.parse(savedItems) : mockFinanceItems)
+          setSavingsGoals(savedSavings ? JSON.parse(savedSavings).map((goal: any) => ({
+            ...goal,
+            deadline: goal.deadline ? new Date(goal.deadline) : undefined,
+            createdAt: goal.createdAt ? new Date(goal.createdAt) : new Date()
+          })) : mockSavingsGoals)
+        } catch (error) {
+          console.error('Error loading finance data:', error)
+          setFinanceItems(mockFinanceItems)
+          setSavingsGoals(mockSavingsGoals)
+        }
+      }
+    }
+
+    loadFinances()
+  }, [user])
+
+  // Save changes locally (guest mode only)
+  useEffect(() => {
+    if (mounted && !user) {
+      localStorage.setItem('financeItems', JSON.stringify(financeItems))
+      localStorage.setItem('savingsGoals', JSON.stringify(savingsGoals))
+    }
+  }, [financeItems, savingsGoals, mounted, user])
 
   const getCategoryColor = (category: FinanceItem['category']) => {
     switch (category) {
@@ -59,50 +110,96 @@ export default function FinancePage() {
     return acc
   }, {} as Record<string, { estimated: number; actual: number; paid: number }>)
 
-  const handleTogglePaid = (id: string) => {
-    setFinanceItems(prev => prev.map(item => 
-      item.id === id ? { ...item, paid: !item.paid } : item
-    ))
-  }
+  const handleTogglePaid = async (id: string) => {
+    const matched = financeItems.find(item => item.id === id)
+    if (!matched) return
 
-  const handleDeleteItem = (id: string) => {
-    if (confirm('Are you sure you want to delete this expense?')) {
-      setFinanceItems(prev => prev.filter(item => item.id !== id))
+    const updated = { ...matched, paid: !matched.paid }
+
+    if (user) {
+      try {
+        await dbFinance.update(user.uid, updated)
+        setFinanceItems(prev => prev.map(item => item.id === id ? updated : item))
+      } catch (error) {
+        console.error('Error toggling paid state:', error)
+      }
+    } else {
+      setFinanceItems(prev => prev.map(item => item.id === id ? updated : item))
     }
   }
 
-  const handleUpdateActualAmount = (id: string, actualAmount: number) => {
-    setFinanceItems(prev => prev.map(item => 
-      item.id === id ? { ...item, actualAmount } : item
-    ))
+  const handleDeleteItem = async (id: string) => {
+    if (confirm('Are you sure you want to delete this expense?')) {
+      if (user) {
+        try {
+          await dbFinance.delete(user.uid, id)
+          setFinanceItems(prev => prev.filter(item => item.id !== id))
+        } catch (error) {
+          console.error('Error deleting expense:', error)
+        }
+      } else {
+        setFinanceItems(prev => prev.filter(item => item.id !== id))
+      }
+    }
   }
 
-  const handleAddExpense = () => {
+  const handleUpdateActualAmount = async (id: string, actualAmount: number) => {
+    const matched = financeItems.find(item => item.id === id)
+    if (!matched) return
+
+    const updated = { ...matched, actualAmount }
+
+    if (user) {
+      try {
+        await dbFinance.update(user.uid, updated)
+        setFinanceItems(prev => prev.map(item => item.id === id ? updated : item))
+      } catch (error) {
+        console.error('Error updating actual amount:', error)
+      }
+    } else {
+      setFinanceItems(prev => prev.map(item => item.id === id ? updated : item))
+    }
+  }
+
+  const handleAddExpense = async () => {
     const description = prompt('Enter expense description:')
     const amount = prompt('Enter estimated amount:')
     const category = prompt('Enter category (Application/Travel/Tuition/Living/Other):')
     
     if (description && amount && category) {
-      const newExpense: FinanceItem = {
-        id: Date.now().toString(),
+      const data: Omit<FinanceItem, 'id'> = {
         description: description.trim(),
         estimatedAmount: parseFloat(amount),
         category: category as FinanceItem['category'],
         currency: 'EUR',
         paid: false
       }
-      setFinanceItems(prev => [...prev, newExpense])
+
+      if (user) {
+        try {
+          const added = await dbFinance.add(user.uid, data)
+          setFinanceItems(prev => [...prev, added])
+        } catch (error) {
+          console.error('Error adding expense:', error)
+        }
+      } else {
+        const newExpense: FinanceItem = {
+          ...data,
+          id: Date.now().toString()
+        }
+        setFinanceItems(prev => [...prev, newExpense])
+      }
     }
   }
 
   const handleCurrencyChange = (newCurrency: string) => {
-    setSettings(prev => ({
-      ...prev,
+    updateSettings({
+      ...settings,
       currency: {
-        ...prev.currency,
+        ...settings.currency,
         primary: newCurrency
       }
-    }))
+    })
   }
 
   const convertCurrencyAmount = () => {
@@ -113,13 +210,22 @@ export default function FinancePage() {
   }
 
   // Savings goal handlers
-  const handleAddSavingsGoal = (goalData: Omit<SavingsGoal, 'id' | 'createdAt'>) => {
-    const newGoal: SavingsGoal = {
-      ...goalData,
-      id: Date.now().toString(),
-      createdAt: new Date()
+  const handleAddSavingsGoal = async (goalData: Omit<SavingsGoal, 'id' | 'createdAt'>) => {
+    if (user) {
+      try {
+        const added = await dbSavingsGoals.add(user.uid, goalData)
+        setSavingsGoals(prev => [...prev, added])
+      } catch (error) {
+        console.error('Error adding savings goal:', error)
+      }
+    } else {
+      const newGoal: SavingsGoal = {
+        ...goalData,
+        id: Date.now().toString(),
+        createdAt: new Date()
+      }
+      setSavingsGoals(prev => [...prev, newGoal])
     }
-    setSavingsGoals(prev => [...prev, newGoal])
     setIsSavingsModalOpen(false)
   }
 
@@ -128,7 +234,7 @@ export default function FinancePage() {
     setIsSavingsModalOpen(true)
   }
 
-  const handleUpdateSavingsGoal = (goalData: Omit<SavingsGoal, 'id' | 'createdAt'>) => {
+  const handleUpdateSavingsGoal = async (goalData: Omit<SavingsGoal, 'id' | 'createdAt'>) => {
     if (!editingSavingsGoal) return
     
     const updatedGoal: SavingsGoal = {
@@ -136,21 +242,52 @@ export default function FinancePage() {
       id: editingSavingsGoal.id,
       createdAt: editingSavingsGoal.createdAt
     }
-    setSavingsGoals(prev => prev.map(goal => goal.id === editingSavingsGoal.id ? updatedGoal : goal))
+
+    if (user) {
+      try {
+        await dbSavingsGoals.update(user.uid, updatedGoal)
+        setSavingsGoals(prev => prev.map(goal => goal.id === editingSavingsGoal.id ? updatedGoal : goal))
+      } catch (error) {
+        console.error('Error updating savings goal:', error)
+      }
+    } else {
+      setSavingsGoals(prev => prev.map(goal => goal.id === editingSavingsGoal.id ? updatedGoal : goal))
+    }
     setIsSavingsModalOpen(false)
     setEditingSavingsGoal(undefined)
   }
 
-  const handleDeleteSavingsGoal = (id: string) => {
+  const handleDeleteSavingsGoal = async (id: string) => {
     if (confirm('Are you sure you want to delete this savings goal?')) {
-      setSavingsGoals(prev => prev.filter(goal => goal.id !== id))
+      if (user) {
+        try {
+          await dbSavingsGoals.delete(user.uid, id)
+          setSavingsGoals(prev => prev.filter(goal => goal.id !== id))
+        } catch (error) {
+          console.error('Error deleting savings goal:', error)
+        }
+      } else {
+        setSavingsGoals(prev => prev.filter(goal => goal.id !== id))
+      }
     }
   }
 
-  const handleUpdateSavingsAmount = (id: string, newAmount: number) => {
-    setSavingsGoals(prev => prev.map(goal => 
-      goal.id === id ? { ...goal, currentAmount: newAmount } : goal
-    ))
+  const handleUpdateSavingsAmount = async (id: string, newAmount: number) => {
+    const matched = savingsGoals.find(g => g.id === id)
+    if (!matched) return
+
+    const updated = { ...matched, currentAmount: newAmount }
+
+    if (user) {
+      try {
+        await dbSavingsGoals.update(user.uid, updated)
+        setSavingsGoals(prev => prev.map(goal => goal.id === id ? updated : goal))
+      } catch (error) {
+        console.error('Error updating savings amount:', error)
+      }
+    } else {
+      setSavingsGoals(prev => prev.map(goal => goal.id === id ? updated : goal))
+    }
   }
 
   // Calculate total savings

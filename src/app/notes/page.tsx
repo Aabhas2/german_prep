@@ -7,12 +7,15 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { Plus, Search, FileText, Calendar, Edit, Trash2 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 import { mockNotes } from '@/data/mockData'
+import { dbNotes } from '@/lib/db'
 import { formatDate } from '@/lib/utils'
 import { Note } from '@/types'
 import { NoteForm } from '@/components/forms/NoteForm'
 
 export default function NotesPage() {
+  const { user } = useAuth()
   const [notes, setNotes] = useState<Note[]>([])
   const [mounted, setMounted] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -20,7 +23,52 @@ export default function NotesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingNote, setEditingNote] = useState<Note | undefined>(undefined)
 
-  // Simple handlers
+  // Load data on mount / auth change
+  useEffect(() => {
+    setMounted(true)
+    
+    const loadNotes = async () => {
+      if (user) {
+        try {
+          const cloudNotes = await dbNotes.fetch(user.uid)
+          setNotes(cloudNotes)
+        } catch (error) {
+          console.error('Error fetching cloud notes:', error)
+        }
+      } else {
+        try {
+          const savedNotes = localStorage.getItem('notes')
+          if (savedNotes) {
+            const parsedNotes = JSON.parse(savedNotes).map((note: any) => ({
+              id: note.id || Date.now().toString(),
+              title: note.title || 'Untitled',
+              content: note.content || '',
+              category: note.category || 'General',
+              tags: Array.isArray(note.tags) ? note.tags : [],
+              createdAt: note.createdAt ? new Date(note.createdAt) : new Date(),
+              updatedAt: note.updatedAt ? new Date(note.updatedAt) : new Date()
+            }))
+            setNotes(parsedNotes)
+          } else {
+            setNotes(mockNotes)
+          }
+        } catch (error) {
+          console.error('Error loading notes:', error)
+          setNotes(mockNotes)
+        }
+      }
+    }
+
+    loadNotes()
+  }, [user])
+
+  // Save notes locally (guest mode only)
+  useEffect(() => {
+    if (mounted && !user) {
+      localStorage.setItem('notes', JSON.stringify(notes))
+    }
+  }, [notes, mounted, user])
+
   const handleAddNote = () => {
     setEditingNote(undefined)
     setIsModalOpen(true)
@@ -31,17 +79,46 @@ export default function NotesPage() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteNote = (noteId: string) => {
+  const handleDeleteNote = async (noteId: string) => {
     if (confirm('Are you sure you want to delete this note?')) {
-      setNotes(notes.filter(n => n.id !== noteId))
+      if (user) {
+        try {
+          await dbNotes.delete(user.uid, noteId)
+          setNotes(prev => prev.filter(n => n.id !== noteId))
+        } catch (error) {
+          console.error('Error deleting note:', error)
+        }
+      } else {
+        setNotes(notes.filter(n => n.id !== noteId))
+      }
     }
   }
 
-  const handleSaveNote = (note: Note) => {
+  const handleSaveNote = async (note: Note) => {
     if (editingNote) {
-      setNotes(notes.map(n => n.id === note.id ? note : n))
+      if (user) {
+        try {
+          await dbNotes.update(user.uid, note)
+          setNotes(prev => prev.map(n => n.id === note.id ? note : n))
+        } catch (error) {
+          console.error('Error updating note:', error)
+        }
+      } else {
+        setNotes(notes.map(n => n.id === note.id ? note : n))
+      }
     } else {
-      setNotes([...notes, note])
+      if (user) {
+        try {
+          // Remove ID placeholder since Firestore generates one
+          const { id, ...data } = note
+          const added = await dbNotes.add(user.uid, data)
+          setNotes(prev => [...prev, added])
+        } catch (error) {
+          console.error('Error adding note:', error)
+        }
+      } else {
+        setNotes([...notes, note])
+      }
     }
     setIsModalOpen(false)
     setEditingNote(undefined)
@@ -114,39 +191,6 @@ export default function NotesPage() {
       </CardContent>
     </Card>
   )
-
-  // Load data on mount
-  useEffect(() => {
-    setMounted(true)
-    
-    try {
-      const savedNotes = localStorage.getItem('notes')
-      if (savedNotes) {
-        const parsedNotes = JSON.parse(savedNotes).map((note: any) => ({
-          id: note.id || Date.now().toString(),
-          title: note.title || 'Untitled',
-          content: note.content || '',
-          category: note.category || 'General',
-          tags: Array.isArray(note.tags) ? note.tags : [],
-          createdAt: note.createdAt ? new Date(note.createdAt) : new Date(),
-          updatedAt: note.updatedAt ? new Date(note.updatedAt) : new Date()
-        }))
-        setNotes(parsedNotes)
-      } else {
-        setNotes(mockNotes)
-      }
-    } catch (error) {
-      console.error('Error loading notes:', error)
-      setNotes(mockNotes)
-    }
-  }, [])
-
-  // Save notes when they change
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem('notes', JSON.stringify(notes))
-    }
-  }, [notes, mounted])
 
   // Show loading during SSR
   if (!mounted) {

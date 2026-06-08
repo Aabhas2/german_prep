@@ -19,7 +19,7 @@ export const fallbackRates: ExchangeRates = {
 }
 
 // Free API endpoints for exchange rates
-const EXCHANGE_RATE_APIS = [
+export const EXCHANGE_RATE_APIS = [
   {
     name: 'ExchangeRate-API',
     baseUrl: 'https://api.exchangerate-api.com/v4/latest',

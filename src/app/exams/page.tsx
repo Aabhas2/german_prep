@@ -7,19 +7,60 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { Plus, Calendar, ExternalLink, BookOpen, Award, Edit, Trash2 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 import { mockExams } from '@/data/mockData'
+import { dbExams } from '@/lib/db'
 import { formatDate } from '@/lib/utils'
 import { Exam } from '@/types'
 import { ExamForm } from '@/components/forms/ExamForm'
-import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { useIsClient } from '@/hooks/useIsClient'
 import { Loading } from '@/components/ui/Loading'
 
 export default function ExamsPage() {
   const isClient = useIsClient()
-  const [exams, setExams] = useLocalStorage<Exam[]>('exams', mockExams)
+  const { user } = useAuth()
+  const [exams, setExams] = useState<Exam[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingExam, setEditingExam] = useState<Exam | undefined>(undefined)
+  const [mounted, setMounted] = useState(false)
+
+  // Load data on mount / auth state change
+  useEffect(() => {
+    setMounted(true)
+    
+    const loadExams = async () => {
+      if (user) {
+        try {
+          const cloudExams = await dbExams.fetch(user.uid)
+          setExams(cloudExams)
+        } catch (error) {
+          console.error('Error fetching exams from cloud:', error)
+        }
+      } else {
+        try {
+          const savedExams = localStorage.getItem('exams')
+          const parsedExams = savedExams ? JSON.parse(savedExams).map((exam: any) => ({
+            ...exam,
+            plannedDate: exam.plannedDate ? new Date(exam.plannedDate) : null,
+            actualDate: exam.actualDate ? new Date(exam.actualDate) : null
+          })) : mockExams
+          setExams(parsedExams)
+        } catch (error) {
+          console.error('Error loading exams:', error)
+          setExams(mockExams)
+        }
+      }
+    }
+
+    loadExams()
+  }, [user])
+
+  // Save exams locally (guest mode only)
+  useEffect(() => {
+    if (mounted && !user) {
+      localStorage.setItem('exams', JSON.stringify(exams))
+    }
+  }, [exams, mounted, user])
 
   const getStatusVariant = (status: Exam['status']) => {
     switch (status) {
@@ -39,17 +80,46 @@ export default function ExamsPage() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteExam = (examId: string) => {
+  const handleDeleteExam = async (examId: string) => {
     if (confirm('Are you sure you want to delete this exam?')) {
-      setExams(prev => prev.filter(e => e.id !== examId))
+      if (user) {
+        try {
+          await dbExams.delete(user.uid, examId)
+          setExams(prev => prev.filter(e => e.id !== examId))
+        } catch (error) {
+          console.error('Error deleting exam:', error)
+        }
+      } else {
+        setExams(prev => prev.filter(e => e.id !== examId))
+      }
     }
   }
 
-  const handleSaveExam = (exam: Exam) => {
+  const handleSaveExam = async (exam: Exam) => {
     if (editingExam) {
-      setExams(prev => prev.map(e => e.id === exam.id ? exam : e))
+      if (user) {
+        try {
+          await dbExams.update(user.uid, exam)
+          setExams(prev => prev.map(e => e.id === exam.id ? exam : e))
+        } catch (error) {
+          console.error('Error updating exam:', error)
+        }
+      } else {
+        setExams(prev => prev.map(e => e.id === exam.id ? exam : e))
+      }
     } else {
-      setExams(prev => [...prev, exam])
+      if (user) {
+        try {
+          // Remove ID placeholder since Firestore generates one
+          const { id, ...data } = exam
+          const added = await dbExams.add(user.uid, data)
+          setExams(prev => [...prev, added])
+        } catch (error) {
+          console.error('Error adding exam:', error)
+        }
+      } else {
+        setExams(prev => [...prev, exam])
+      }
     }
     setIsModalOpen(false)
     setEditingExam(undefined)
@@ -60,26 +130,46 @@ export default function ExamsPage() {
     setEditingExam(undefined)
   }
 
-  const handleMarkComplete = (examId: string) => {
+  const handleMarkComplete = async (examId: string) => {
     const score = prompt('Enter your score/result (optional):')
-    setExams(prev => prev.map(exam => 
-      exam.id === examId 
-        ? { 
-            ...exam, 
-            status: 'Completed' as Exam['status'], 
-            actualDate: new Date(),
-            score: score || exam.score
-          }
-        : exam
-    ))
+    const matched = exams.find(e => e.id === examId)
+    if (!matched) return
+
+    const updated: Exam = { 
+      ...matched, 
+      status: 'Completed' as Exam['status'], 
+      actualDate: new Date(),
+      score: score || matched.score
+    }
+
+    if (user) {
+      try {
+        await dbExams.update(user.uid, updated)
+        setExams(prev => prev.map(exam => exam.id === examId ? updated : exam))
+      } catch (error) {
+        console.error('Error completing exam:', error)
+      }
+    } else {
+      setExams(prev => prev.map(exam => exam.id === examId ? updated : exam))
+    }
   }
 
-  const handleMarkRegistered = (examId: string) => {
-    setExams(prev => prev.map(exam => 
-      exam.id === examId 
-        ? { ...exam, status: 'Registered' as Exam['status'] }
-        : exam
-    ))
+  const handleMarkRegistered = async (examId: string) => {
+    const matched = exams.find(e => e.id === examId)
+    if (!matched) return
+
+    const updated: Exam = { ...matched, status: 'Registered' as Exam['status'] }
+
+    if (user) {
+      try {
+        await dbExams.update(user.uid, updated)
+        setExams(prev => prev.map(exam => exam.id === examId ? updated : exam))
+      } catch (error) {
+        console.error('Error registering exam:', error)
+      }
+    } else {
+      setExams(prev => prev.map(exam => exam.id === examId ? updated : exam))
+    }
   }
 
   const handleOpenRegistration = (url: string) => {

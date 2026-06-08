@@ -86,29 +86,39 @@ export interface Note {
   updatedAt: Date
 }
 
-export interface AppSettings {
-  theme: 'light' | 'dark'
-  notifications: boolean
+export type Theme = 'light' | 'dark' | 'system'
+
+export interface CurrencySettings {
+  primary: string
+  secondary?: string
+  displaySymbol: boolean
+  exchangeRates: Record<string, number>
+  lastUpdated?: string
+  autoUpdate?: boolean
+}
+
+export interface DashboardSettings {
+  showProgressBars: boolean
+  showRecentTasks: boolean
+  showFinancialOverview: boolean
+  showQuickActions: boolean
+  tasksToShow: number
+}
+
+export interface Settings {
+  theme: Theme
   personalDetails: {
     name: string
     email: string
     targetCountry: string
     targetStartDate: string
   }
-  currency: {
-    primary: string
-    displaySymbol: boolean
-    exchangeRates: Record<string, number>
-    lastUpdated: string
-    autoUpdate: boolean
-  }
-  dashboard: {
-    showProgressBars: boolean
-    showQuickActions: boolean
-    showRecentTasks: boolean
-    showFinancialOverview: boolean
-    tasksToShow: number
-    refreshInterval: number
+  currency: CurrencySettings
+  dashboard: DashboardSettings
+  notifications: {
+    deadlineReminders: boolean
+    taskUpdates: boolean
+    emailNotifications: boolean
   }
   tasks: {
     defaultPriority: 'Low' | 'Medium' | 'High'

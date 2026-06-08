@@ -8,19 +8,62 @@ import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Plus, CheckCircle, Clock, AlertTriangle, Calendar, FileText, Edit, Trash2 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { useTheme } from '@/contexts/ThemeContext'
+import { countriesConfig } from '@/data/countries'
 import { mockVisaSteps } from '@/data/mockData'
+import { dbVisaSteps } from '@/lib/db'
 import { formatDate } from '@/lib/utils'
 import { VisaStep } from '@/types'
 import { VisaStepForm } from '@/components/forms/VisaStepForm'
-import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { useIsClient } from '@/hooks/useIsClient'
 import { Loading } from '@/components/ui/Loading'
 
 export default function VisaPage() {
   const isClient = useIsClient()
-  const [visaSteps, setVisaSteps] = useLocalStorage<VisaStep[]>('visaSteps', mockVisaSteps)
+  const { user } = useAuth()
+  const { settings } = useTheme()
+  const [visaSteps, setVisaSteps] = useState<VisaStep[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingStep, setEditingStep] = useState<VisaStep | undefined>(undefined)
+  const [mounted, setMounted] = useState(false)
+
+  // Load data on mount / auth state change
+  useEffect(() => {
+    setMounted(true)
+    
+    const loadVisaSteps = async () => {
+      if (user) {
+        try {
+          const cloudSteps = await dbVisaSteps.fetch(user.uid)
+          setVisaSteps(cloudSteps)
+        } catch (error) {
+          console.error('Error fetching visa steps from cloud:', error)
+        }
+      } else {
+        try {
+          const savedSteps = localStorage.getItem('visaSteps')
+          const parsedSteps = savedSteps ? JSON.parse(savedSteps).map((step: any) => ({
+            ...step,
+            dueDate: step.dueDate ? new Date(step.dueDate) : null
+          })) : mockVisaSteps
+          setVisaSteps(parsedSteps)
+        } catch (error) {
+          console.error('Error loading visa steps:', error)
+          setVisaSteps(mockVisaSteps)
+        }
+      }
+    }
+
+    loadVisaSteps()
+  }, [user])
+
+  // Save steps locally (guest mode only)
+  useEffect(() => {
+    if (mounted && !user) {
+      localStorage.setItem('visaSteps', JSON.stringify(visaSteps))
+    }
+  }, [visaSteps, mounted, user])
 
   const getStatusIcon = (status: VisaStep['status']) => {
     switch (status) {
@@ -52,17 +95,45 @@ export default function VisaPage() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteStep = (stepId: string) => {
+  const handleDeleteStep = async (stepId: string) => {
     if (confirm('Are you sure you want to delete this step?')) {
-      setVisaSteps(prev => prev.filter(s => s.id !== stepId))
+      if (user) {
+        try {
+          await dbVisaSteps.delete(user.uid, stepId)
+          setVisaSteps(prev => prev.filter(s => s.id !== stepId))
+        } catch (error) {
+          console.error('Error deleting visa step:', error)
+        }
+      } else {
+        setVisaSteps(prev => prev.filter(s => s.id !== stepId))
+      }
     }
   }
 
-  const handleSaveStep = (step: VisaStep) => {
+  const handleSaveStep = async (step: VisaStep) => {
     if (editingStep) {
-      setVisaSteps(prev => prev.map(s => s.id === step.id ? step : s))
+      if (user) {
+        try {
+          await dbVisaSteps.update(user.uid, step)
+          setVisaSteps(prev => prev.map(s => s.id === step.id ? step : s))
+        } catch (error) {
+          console.error('Error updating visa step:', error)
+        }
+      } else {
+        setVisaSteps(prev => prev.map(s => s.id === step.id ? step : s))
+      }
     } else {
-      setVisaSteps(prev => [...prev, step])
+      if (user) {
+        try {
+          const { id, ...data } = step
+          const added = await dbVisaSteps.add(user.uid, data)
+          setVisaSteps(prev => [...prev, added])
+        } catch (error) {
+          console.error('Error adding visa step:', error)
+        }
+      } else {
+        setVisaSteps(prev => [...prev, step])
+      }
     }
     setIsModalOpen(false)
     setEditingStep(undefined)
@@ -73,43 +144,84 @@ export default function VisaPage() {
     setEditingStep(undefined)
   }
 
-  const handleMarkComplete = (stepId: string) => {
-    setVisaSteps(prev => prev.map(step => 
-      step.id === stepId 
-        ? { ...step, status: 'Completed' as VisaStep['status'] }
-        : step
-    ))
+  const handleMarkComplete = async (stepId: string) => {
+    const matched = visaSteps.find(s => s.id === stepId)
+    if (!matched) return
+
+    const updated: VisaStep = { ...matched, status: 'Completed' as VisaStep['status'] }
+
+    if (user) {
+      try {
+        await dbVisaSteps.update(user.uid, updated)
+        setVisaSteps(prev => prev.map(step => step.id === stepId ? updated : step))
+      } catch (error) {
+        console.error('Error completing visa step:', error)
+      }
+    } else {
+      setVisaSteps(prev => prev.map(step => step.id === stepId ? updated : step))
+    }
   }
 
   const handleBookAppointment = () => {
-    // Open German consulate appointment booking page
-    window.open('https://service2.diplo.de/rktermin/extern/choose_categoryList.do?locationCode=indi&realmId=108&categoryId=373', '_blank', 'noopener,noreferrer')
+    const country = settings.personalDetails.targetCountry || 'Germany'
+    if (country === 'Germany') {
+      window.open('https://service2.diplo.de/rktermin/extern/choose_categoryList.do?locationCode=indi&realmId=108&categoryId=373', '_blank', 'noopener,noreferrer')
+    } else if (country === 'Canada') {
+      window.open('https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html', '_blank', 'noopener,noreferrer')
+    } else {
+      window.open('https://www.vfsglobal.com', '_blank', 'noopener,noreferrer')
+    }
   }
 
-  const handleDocumentChecklist = () => {
-    // Create a new visa step with document checklist
-    const checklistStep: VisaStep = {
-      id: Date.now().toString(),
-      title: 'Document Checklist',
-      description: 'Complete document checklist for German student visa',
+  const handleDocumentChecklist = async () => {
+    const country = settings.personalDetails.targetCountry || 'Germany'
+    const config = countriesConfig[country]
+    
+    const checklistStep: Omit<VisaStep, 'id'> = {
+      title: `${country} Document Checklist`,
+      description: `Complete document checklist for ${country} student visa. Required proof: ${config?.visaAmount || '11904'} ${config?.visaCurrency || 'EUR'} via ${config?.visaType || 'Blocked Account'}.`,
       status: 'Pending',
-      documents: [
+      documents: config ? [
         'Valid passport (6+ months validity)',
         'University admission letter',
-        'Proof of financial resources (€11,208/year)',
+        `Financial Proof (${config.visaAmount} ${config.visaCurrency} via ${config.visaType})`,
         'Health insurance coverage',
         'Academic transcripts and certificates',
-        'Language proficiency certificates',
-        'Completed visa application form',
+        ...config.mandatedExams.map(exam => `${exam} documentation`),
         'Biometric photos'
+      ] : [
+        'Valid passport',
+        'University admission letter',
+        'Proof of financial resources',
+        'Academic transcripts'
       ]
     }
-    setVisaSteps(prev => [...prev, checklistStep])
+
+    if (user) {
+      try {
+        const added = await dbVisaSteps.add(user.uid, checklistStep)
+        setVisaSteps(prev => [...prev, added])
+      } catch (error) {
+        console.error('Error generating document checklist:', error)
+      }
+    } else {
+      const stepWithId: VisaStep = {
+        ...checklistStep,
+        id: Date.now().toString()
+      }
+      setVisaSteps(prev => [...prev, stepWithId])
+    }
   }
 
   const handleTrackApplication = () => {
-    // Open visa application tracking page
-    window.open('https://visa.vfsglobal.com/ind/en/deu/track-application', '_blank', 'noopener,noreferrer')
+    const country = settings.personalDetails.targetCountry || 'Germany'
+    if (country === 'Germany') {
+      window.open('https://visa.vfsglobal.com/ind/en/deu/track-application', '_blank', 'noopener,noreferrer')
+    } else if (country === 'Canada') {
+      window.open('https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-status.html', '_blank', 'noopener,noreferrer')
+    } else {
+      window.open('https://visa.vfsglobal.com', '_blank', 'noopener,noreferrer')
+    }
   }
 
   const VisaStepCard = ({ step, index }: { step: VisaStep; index: number }) => (
