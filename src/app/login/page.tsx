@@ -3,9 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { User, Mail, Lock, ShieldAlert, LogIn, UserPlus } from 'lucide-react'
+import { User, Mail, Lock, ShieldAlert, LogIn, UserPlus, GraduationCap, BookOpen, Globe2 } from 'lucide-react'
 import { migrateLocalDataToCloud } from '@/lib/db'
 import { defaultSettings } from '@/contexts/ThemeContext'
 import { auth } from '@/lib/firebase'
@@ -32,59 +31,36 @@ export default function LoginPage() {
     const currentUser = auth.currentUser
     if (!currentUser) return
 
-    // Check if there is local data
-    const tasksLocal = localStorage.getItem('tasks')
-    const universitiesLocal = localStorage.getItem('universities')
-    const examsLocal = localStorage.getItem('exams')
-    const financeLocal = localStorage.getItem('financeItems')
-    const notesLocal = localStorage.getItem('notes')
-    const scholarshipsLocal = localStorage.getItem('scholarships')
-    const visaStepsLocal = localStorage.getItem('visaSteps')
-    const settingsLocal = localStorage.getItem('settings')
+    const tasksLocal         = localStorage.getItem('tasks')
+    const universitiesLocal  = localStorage.getItem('universities')
+    const examsLocal         = localStorage.getItem('exams')
+    const financeLocal       = localStorage.getItem('financeItems')
+    const notesLocal         = localStorage.getItem('notes')
+    const scholarshipsLocal  = localStorage.getItem('scholarships')
+    const visaStepsLocal     = localStorage.getItem('visaSteps')
+    const settingsLocal      = localStorage.getItem('settings')
 
-    // If there is any local data, let's migrate it
     const hasLocalData = tasksLocal || universitiesLocal || examsLocal || financeLocal || notesLocal || scholarshipsLocal || visaStepsLocal
 
     if (hasLocalData) {
       try {
-        const tasks = tasksLocal ? JSON.parse(tasksLocal) : []
+        const tasks        = tasksLocal       ? JSON.parse(tasksLocal)       : []
         const universities = universitiesLocal ? JSON.parse(universitiesLocal) : []
-        const exams = examsLocal ? JSON.parse(examsLocal) : []
-        const financeItems = financeLocal ? JSON.parse(financeLocal) : []
-        const notes = notesLocal ? JSON.parse(notesLocal) : []
-        const scholarships = scholarshipsLocal ? JSON.parse(scholarshipsLocal) : []
-        const visaSteps = visaStepsLocal ? JSON.parse(visaStepsLocal) : []
-        
+        const exams        = examsLocal        ? JSON.parse(examsLocal)        : []
+        const financeItems = financeLocal      ? JSON.parse(financeLocal)      : []
+        const notes        = notesLocal        ? JSON.parse(notesLocal)        : []
+        const scholarships = scholarshipsLocal  ? JSON.parse(scholarshipsLocal)  : []
+        const visaSteps    = visaStepsLocal    ? JSON.parse(visaStepsLocal)    : []
+
         let settings = defaultSettings
         if (settingsLocal) {
-          try {
-            settings = { ...defaultSettings, ...JSON.parse(settingsLocal) }
-          } catch (e) {
-            console.error('Error parsing local settings:', e)
-          }
+          try { settings = { ...defaultSettings, ...JSON.parse(settingsLocal) } } catch { /* ignore */ }
         }
 
-        // Migrate to firestore
-        await migrateLocalDataToCloud(currentUser.uid, {
-          tasks,
-          universities,
-          exams,
-          financeItems,
-          notes,
-          scholarships,
-          visaSteps,
-          settings
-        })
+        await migrateLocalDataToCloud(currentUser.uid, { tasks, universities, exams, financeItems, notes, scholarships, visaSteps, settings })
 
-        // Clear local storage keys so we don't migrate them again next time
-        localStorage.removeItem('tasks')
-        localStorage.removeItem('universities')
-        localStorage.removeItem('exams')
-        localStorage.removeItem('financeItems')
-        localStorage.removeItem('notes')
-        localStorage.removeItem('scholarships')
-        localStorage.removeItem('visaSteps')
-        localStorage.removeItem('settings')
+        // Clear migrated keys
+        ;['tasks','universities','exams','financeItems','notes','scholarships','visaSteps','settings'].forEach(k => localStorage.removeItem(k))
       } catch (err) {
         console.error('Error migrating local data to cloud:', err)
       }
@@ -93,8 +69,11 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        </div>
       </div>
     )
   }
@@ -103,12 +82,9 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     setAuthLoading(true)
-
     try {
       if (isSignUp) {
-        if (!name.trim()) {
-          throw new Error('Please enter your name.')
-        }
+        if (!name.trim()) throw new Error('Please enter your name.')
         await signUpWithEmail(email, password, name)
       } else {
         await signInWithEmail(email, password)
@@ -137,34 +113,90 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-950 px-4">
-      <div className="w-full max-w-md">
-        {/* Glassmorphic Brand Card */}
-        <Card className="border border-white/20 dark:border-gray-800/40 bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl shadow-2xl">
-          <CardHeader className="text-center pb-2">
-            <div className="flex justify-center mb-2">
-              <span className="text-4xl">🌎</span>
+    <div className="flex min-h-screen bg-background">
+      {/* Left decorative panel */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-accent/60 flex-col items-center justify-center p-12">
+        {/* Decorative blobs */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-black/10 rounded-full translate-y-40 -translate-x-20" />
+        <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-accent/20 rounded-full blur-xl" />
+
+        <div className="relative z-10 text-center space-y-8">
+          {/* Logo area */}
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-20 h-20 rounded-3xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-xl">
+              <GraduationCap className="w-10 h-10 text-white" />
             </div>
-            <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-              Study Abroad Prep Hub
-            </CardTitle>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {isSignUp ? 'Create your profile to start planning' : 'Log in to access your dashboard'}
-            </p>
-          </CardHeader>
+            <div>
+              <h1 className="text-3xl font-bold text-white tracking-tight">Prep Hub</h1>
+              <p className="text-white/70 text-sm mt-1 tracking-wider uppercase">Study Abroad Planner</p>
+            </div>
+          </div>
 
-          <CardContent className="mt-4">
-            {error && (
-              <div className="flex items-center space-x-2 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm mb-4 border border-red-200 dark:border-red-900/50">
-                <ShieldAlert className="h-4 w-4 shrink-0" />
-                <span>{error}</span>
+          {/* Feature highlights */}
+          <div className="space-y-4 text-left max-w-xs">
+            {[
+              { icon: BookOpen,  label: 'Track Applications',    desc: 'Manage university applications and deadlines' },
+              { icon: Globe2,    label: 'Plan Your Journey',     desc: 'Visa, finance, exams — all in one place' },
+              { icon: GraduationCap, label: 'Stay Organized',   desc: 'Tasks, notes, and scholarship tracking' },
+            ].map(({ icon: Icon, label, desc }) => (
+              <div key={label} className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
+                  <Icon className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-white font-medium text-sm">{label}</p>
+                  <p className="text-white/60 text-xs leading-relaxed">{desc}</p>
+                </div>
               </div>
-            )}
+            ))}
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {isSignUp && (
+          <p className="text-white/40 text-xs">Designed for students. Built for 2026–27.</p>
+        </div>
+      </div>
+
+      {/* Right auth panel */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm space-y-8">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex items-center gap-2">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <GraduationCap className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-base font-bold text-foreground">Prep Hub</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Study Abroad</p>
+            </div>
+          </div>
+
+          {/* Heading */}
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">
+              {isSignUp ? 'Create your account' : 'Welcome back'}
+            </h2>
+            <p className="text-muted-foreground text-sm mt-1.5">
+              {isSignUp
+                ? 'Start planning your study abroad journey'
+                : 'Sign in to access your dashboard'}
+            </p>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="flex items-center gap-2 bg-danger/10 text-danger px-4 py-3 rounded-lg text-sm border border-danger/20">
+              <ShieldAlert className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div className="space-y-1.5">
+                <label className="input-label">Full Name</label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none">
                     <User className="h-4 w-4" />
                   </span>
                   <input
@@ -172,14 +204,17 @@ export default function LoginPage() {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Full Name"
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100"
+                    placeholder="Your full name"
+                    className="input-field pl-10"
                   />
                 </div>
-              )}
+              </div>
+            )}
 
+            <div className="space-y-1.5">
+              <label className="input-label">Email Address</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none">
                   <Mail className="h-4 w-4" />
                 </span>
                 <input
@@ -187,13 +222,16 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email Address"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100"
+                  placeholder="you@example.com"
+                  className="input-field pl-10"
                 />
               </div>
+            </div>
 
+            <div className="space-y-1.5">
+              <label className="input-label">Password</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none">
                   <Lock className="h-4 w-4" />
                 </span>
                 <input
@@ -201,82 +239,71 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100"
+                  placeholder="••••••••"
+                  className="input-field pl-10"
                 />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={authLoading}
-                className="w-full flex items-center justify-center space-x-2 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium shadow-lg shadow-blue-500/20"
-              >
-                {authLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
-                ) : isSignUp ? (
-                  <>
-                    <UserPlus className="h-4 w-4" />
-                    <span>Create Account</span>
-                  </>
-                ) : (
-                  <>
-                    <LogIn className="h-4 w-4" />
-                    <span>Log In</span>
-                  </>
-                )}
-              </Button>
-            </form>
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-700" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white/70 dark:bg-gray-900 px-2 text-gray-500">Or continue with</span>
               </div>
             </div>
 
             <Button
-              type="button"
-              variant="outline"
+              type="submit"
               disabled={authLoading}
-              onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center space-x-2 border border-gray-300 dark:border-gray-700 bg-white/50 hover:bg-gray-50 dark:bg-gray-800/50 dark:hover:bg-gray-800 rounded-lg py-2"
+              className="w-full justify-center py-2.5 mt-2"
             >
-              <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
-                <path
-                  fill="#EA4335"
-                  d="M12 5.04c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 1.74 14.96 1 12 1 7.42 1 3.53 3.63 1.67 7.43l3.86 3C6.46 7.37 9 5.04 12 5.04z"
-                />
-                <path
-                  fill="#4285F4"
-                  d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.73 2.89c2.18-2.01 3.7-4.99 3.7-8.62z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.53 14.28c-.24-.72-.38-1.49-.38-2.28s.14-1.56.38-2.28L1.67 6.72C.61 8.87 0 11.36 0 14s.61 5.13 1.67 7.28l3.86-3z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c3.24 0 5.97-1.09 7.96-2.93l-3.73-2.89c-1.1.74-2.5 1.18-4.23 1.18-3 0-5.54-2.33-6.47-5.39L1.67 16C3.53 19.8 7.42 22.4 12 22.4z"
-                />
-              </svg>
-              <span>Sign in with Google</span>
+              {authLoading ? (
+                <div className="w-4 h-4 rounded-full border-2 border-primary-foreground border-t-transparent animate-spin" />
+              ) : isSignUp ? (
+                <>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Create Account
+                </>
+              ) : (
+                <>
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Log In
+                </>
+              )}
             </Button>
+          </form>
 
-            <div className="text-center mt-6 text-sm">
-              <span className="text-gray-500 dark:text-gray-400">
-                {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-              </span>
-              <button
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="text-blue-600 dark:text-blue-400 hover:underline font-medium focus:outline-none"
-              >
-                {isSignUp ? 'Log In' : 'Sign Up'}
-              </button>
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-3 text-muted-foreground">Or continue with</span>
+            </div>
+          </div>
+
+          {/* Google Sign In */}
+          <Button
+            type="button"
+            variant="outline"
+            disabled={authLoading}
+            onClick={handleGoogleSignIn}
+            className="w-full justify-center py-2.5"
+          >
+            <svg className="h-4 w-4 mr-2.5" viewBox="0 0 24 24">
+              <path fill="#EA4335" d="M12 5.04c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 1.74 14.96 1 12 1 7.42 1 3.53 3.63 1.67 7.43l3.86 3C6.46 7.37 9 5.04 12 5.04z" />
+              <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.73 2.89c2.18-2.01 3.7-4.99 3.7-8.62z" />
+              <path fill="#FBBC05" d="M5.53 14.28c-.24-.72-.38-1.49-.38-2.28s.14-1.56.38-2.28L1.67 6.72C.61 8.87 0 11.36 0 14s.61 5.13 1.67 7.28l3.86-3z" />
+              <path fill="#34A853" d="M12 23c3.24 0 5.97-1.09 7.96-2.93l-3.73-2.89c-1.1.74-2.5 1.18-4.23 1.18-3 0-5.54-2.33-6.47-5.39L1.67 16C3.53 19.8 7.42 22.4 12 22.4z" />
+            </svg>
+            Sign in with Google
+          </Button>
+
+          {/* Toggle */}
+          <p className="text-center text-sm text-muted-foreground">
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+            <button
+              onClick={() => { setIsSignUp(!isSignUp); setError('') }}
+              className="text-primary font-semibold hover:underline focus:outline-none"
+            >
+              {isSignUp ? 'Log In' : 'Sign Up'}
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   )

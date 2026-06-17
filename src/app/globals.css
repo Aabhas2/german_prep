@@ -1,42 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
-    --primary-color: #3b82f6;
+    /* Warm Academic Light Theme */
+    --background: 36 28% 96%;
+    --foreground: 20 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 25% 12%;
+
+    /* Deep burgundy/wine primary - academic, prestigious */
+    --primary: 349 52% 32%;
+    --primary-foreground: 36 28% 97%;
+
+    /* Warm parchment secondary */
+    --secondary: 34 22% 89%;
+    --secondary-foreground: 20 25% 20%;
+
+    /* Subtle warm muted */
+    --muted: 34 16% 92%;
+    --muted-foreground: 20 12% 44%;
+
+    /* Warm amber accent */
+    --accent: 38 72% 48%;
+    --accent-foreground: 20 25% 10%;
+
+    --border: 30 14% 84%;
+    --input: 30 14% 84%;
+    --ring: 349 52% 32%;
+    --radius: 0.625rem;
+
+    /* Custom semantic tokens */
+    --success: 142 60% 36%;
+    --success-foreground: 142 60% 95%;
+    --warning: 38 90% 50%;
+    --warning-foreground: 38 90% 10%;
+    --danger: 0 72% 51%;
+    --danger-foreground: 0 72% 97%;
+    --info: 210 78% 50%;
+    --info-foreground: 210 78% 97%;
+
+    /* Font */
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-heading: 'Playfair Display', Georgia, serif;
     --font-size-multiplier: 1;
     --spacing-multiplier: 1;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.07);
+    --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.10), 0 2px 6px -2px rgb(0 0 0 / 0.06);
+    --shadow-lg: 0 10px 30px -4px rgb(0 0 0 / 0.12), 0 4px 12px -4px rgb(0 0 0 / 0.08);
+    --shadow-xl: 0 20px 48px -8px rgb(0 0 0 / 0.16), 0 8px 20px -8px rgb(0 0 0 / 0.10);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    /* Rich Dark Academic Theme */
+    --background: 220 20% 9%;
+    --foreground: 36 20% 92%;
+
+    --card: 220 18% 13%;
+    --card-foreground: 36 20% 92%;
+
+    --popover: 220 18% 13%;
+    --popover-foreground: 36 20% 92%;
+
+    /* Brighter burgundy for dark mode */
+    --primary: 349 58% 55%;
+    --primary-foreground: 220 20% 9%;
+
+    /* Dark secondary */
+    --secondary: 220 16% 19%;
+    --secondary-foreground: 36 20% 88%;
+
+    /* Dark muted */
+    --muted: 220 16% 19%;
+    --muted-foreground: 220 10% 58%;
+
+    /* Warm gold accent */
+    --accent: 38 75% 55%;
+    --accent-foreground: 220 20% 9%;
+
+    --border: 220 16% 22%;
+    --input: 220 16% 22%;
+    --ring: 349 58% 55%;
+
+    /* Custom semantic tokens - dark */
+    --success: 142 55% 48%;
+    --success-foreground: 220 20% 9%;
+    --warning: 38 85% 58%;
+    --warning-foreground: 220 20% 9%;
+    --danger: 0 68% 60%;
+    --danger-foreground: 220 20% 9%;
+    --info: 210 75% 60%;
+    --info-foreground: 220 20% 9%;
+
+    /* Darker shadows for dark mode */
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.25), 0 1px 2px -1px rgb(0 0 0 / 0.25);
+    --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.35), 0 2px 6px -2px rgb(0 0 0 / 0.25);
+    --shadow-lg: 0 10px 30px -4px rgb(0 0 0 / 0.45), 0 4px 12px -4px rgb(0 0 0 / 0.30);
+    --shadow-xl: 0 20px 48px -8px rgb(0 0 0 / 0.55), 0 8px 20px -8px rgb(0 0 0 / 0.40);
   }
 }
 
@@ -45,58 +114,67 @@
     @apply border-border;
     box-sizing: border-box;
   }
-  
+
   html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    font-size: calc(16px * var(--font-size-multiplier));
   }
-  
+
   body {
     @apply bg-background text-foreground;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000;
-    will-change: scroll-position;
+    font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+  }
+
+  /* Form elements inherit theme */
+  input,
+  select,
+  textarea {
+    background-color: hsl(var(--card)) !important;
+    color: hsl(var(--foreground)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--muted-foreground)) !important;
+    opacity: 0.8;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid hsl(var(--primary)) !important;
+    outline-offset: 2px !important;
+    border-color: hsl(var(--primary)) !important;
   }
 }
 
-/* Performance optimizations */
+/* ========= Performance Variables ========= */
 :root {
-  --transition-fast: 150ms ease-out;
-  --transition-normal: 250ms ease-out;
-  --transition-slow: 350ms ease-out;
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Theme customization */
-/* Compact mode */
+/* ========= Compact Mode ========= */
 .compact {
   --spacing-multiplier: 0.75;
 }
+.compact .space-y-4 > * + * { margin-top: calc(1rem * var(--spacing-multiplier)); }
+.compact .space-y-6 > * + * { margin-top: calc(1.5rem * var(--spacing-multiplier)); }
+.compact .p-4 { padding: calc(1rem * var(--spacing-multiplier)); }
+.compact .p-6 { padding: calc(1.5rem * var(--spacing-multiplier)); }
 
-.compact .space-y-4 > * + * {
-  margin-top: calc(1rem * var(--spacing-multiplier));
-}
-
-.compact .space-y-6 > * + * {
-  margin-top: calc(1.5rem * var(--spacing-multiplier));
-}
-
-.compact .p-4 {
-  padding: calc(1rem * var(--spacing-multiplier));
-}
-
-.compact .p-6 {
-  padding: calc(1.5rem * var(--spacing-multiplier));
-}
-
-/* Font size scaling */
-html {
-  font-size: calc(16px * var(--font-size-multiplier));
-}
-
-/* Animation control */
+/* ========= Animation Control ========= */
 .no-animations *,
 .no-animations *::before,
 .no-animations *::after {
@@ -105,27 +183,6 @@ html {
   transition-duration: 0.01ms !important;
 }
 
-/* Smooth transitions for all interactive elements */
-button, 
-input, 
-select, 
-textarea, 
-a,
-[role="button"] {
-  transition: all var(--transition-fast);
-  will-change: transform, opacity, background-color, border-color, color;
-}
-
-/* Optimize hover states */
-@media (hover: hover) {
-  button:hover,
-  a:hover,
-  [role="button"]:hover {
-    transform: translateY(-1px);
-  }
-}
-
-/* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -137,79 +194,92 @@ a,
   }
 }
 
-/* Custom scrollbar */
+/* ========= Scroll / Hover ========= */
+@media (hover: hover) {
+  button:hover,
+  a:hover,
+  [role="button"]:hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* ========= Custom Scrollbar ========= */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: hsl(var(--muted));
+  border-radius: 8px;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+  background: hsl(var(--border));
+  border-radius: 8px;
   transition: background var(--transition-fast);
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
-/* Loading animations */
+/* ========= Keyframes ========= */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Utility classes for performance */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4); }
+  70%  { box-shadow: 0 0 0 8px hsl(var(--primary) / 0); }
+  100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+}
+
+/* ========= Utility Classes ========= */
 .gpu-accelerated {
   transform: translateZ(0);
   backface-visibility: hidden;
-  perspective: 1000;
 }
 
 .fade-in {
-  animation: fadeIn var(--transition-normal) ease-out;
+  animation: fadeIn var(--transition-normal) ease-out both;
 }
 
 .slide-in {
-  animation: slideIn var(--transition-normal) ease-out;
+  animation: slideIn var(--transition-normal) ease-out both;
+}
+
+.slide-down {
+  animation: slideDown var(--transition-normal) ease-out both;
+}
+
+.scale-in {
+  animation: scaleIn var(--transition-normal) ease-out both;
 }
 
 .smooth-transition {
   transition: all var(--transition-normal);
 }
 
-/* Focus styles for accessibility */
+/* ========= Focus Styles ========= */
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
@@ -219,11 +289,130 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
-/* Grid and layout optimizations */
+/* ========= Grid Utilities ========= */
 .grid-auto-fit {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }
-
 .grid-auto-fill {
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-} 
+}
+
+/* ========= Premium Card Styles ========= */
+.card-hover {
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ========= Glassmorphism ========= */
+.glass {
+  background: hsl(var(--card) / 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.6);
+}
+
+.dark .glass {
+  background: hsl(var(--card) / 0.6);
+  border: 1px solid hsl(var(--border) / 0.4);
+}
+
+/* ========= Gradient Text ========= */
+.gradient-text {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ========= Status Badge Colors - Explicit so Tailwind keeps them ========= */
+.status-success { background-color: hsl(var(--success) / 0.15); color: hsl(var(--success)); border: 1px solid hsl(var(--success) / 0.25); }
+.status-warning { background-color: hsl(var(--warning) / 0.15); color: hsl(var(--warning)); border: 1px solid hsl(var(--warning) / 0.25); }
+.status-danger  { background-color: hsl(var(--danger)  / 0.15); color: hsl(var(--danger));  border: 1px solid hsl(var(--danger)  / 0.25); }
+.status-info    { background-color: hsl(var(--info)    / 0.15); color: hsl(var(--info));    border: 1px solid hsl(var(--info)    / 0.25); }
+.status-neutral { background-color: hsl(var(--muted)); color: hsl(var(--muted-foreground)); border: 1px solid hsl(var(--border)); }
+
+/* ========= Shimmer Skeleton ========= */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--secondary)) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+  border-radius: var(--radius);
+}
+
+/* ========= Table Styles ========= */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+thead th {
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+tbody tr:hover {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+tbody tr + tr {
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* ========= Navigation Active Styles ========= */
+.nav-active {
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.12), hsl(var(--accent) / 0.08));
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+
+/* ========= Divider ========= */
+.divider {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 1.5rem 0;
+}
+
+/* ========= Input Group ========= */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.input-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--foreground) / 0.85);
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+}

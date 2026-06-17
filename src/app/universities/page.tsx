@@ -153,8 +153,8 @@ export default function UniversitiesPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Universities</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage your university applications</p>
+            <h1 className="text-2xl font-bold text-foreground">Universities</h1>
+            <p className="text-muted-foreground">Manage your university applications</p>
           </div>
           <Button onClick={() => setIsModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -175,33 +175,33 @@ export default function UniversitiesPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4 mr-2" />
                     {university.location}
                   </div>
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <Globe className="h-4 w-4 mr-2" />
                     {university.language}
                   </div>
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4 mr-2" />
                     Deadline: {formatDate(university.applicationDeadline)}
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">Course</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{university.course}</p>
+                  <h4 className="font-medium text-foreground mb-1">Course</h4>
+                  <p className="text-sm text-muted-foreground">{university.course}</p>
                 </div>
 
                 {university.notes && (
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">Notes</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{university.notes}</p>
+                    <h4 className="font-medium text-foreground mb-1">Notes</h4>
+                    <p className="text-sm text-muted-foreground">{university.notes}</p>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex justify-between items-center pt-4 border-t border-border">
                   <div className="flex space-x-2">
                     <Button variant="outline" size="sm" onClick={() => handleEditUniversity(university)}>
                       <Edit className="h-4 w-4 mr-1" />
@@ -232,11 +232,11 @@ export default function UniversitiesPage() {
 
         {universities.length === 0 && (
           <div className="text-center py-12">
-            <div className="mx-auto w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+            <div className="mx-auto w-24 h-24 bg-gray-100  rounded-full flex items-center justify-center mb-4">
               <Plus className="h-8 w-8 text-gray-400 dark:text-gray-500" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No universities added yet</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">Start by adding your target universities</p>
+            <h3 className="text-lg font-medium text-foreground mb-2">No universities added yet</h3>
+            <p className="text-muted-foreground mb-4">Start by adding your target universities</p>
             <Button onClick={() => setIsModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Your First University

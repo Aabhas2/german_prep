@@ -5,11 +5,13 @@ import { ReactNode } from 'react'
 interface CardProps {
   children: ReactNode
   className?: string
+  hover?: boolean
 }
 
-export const Card = React.memo(({ children, className }: CardProps) => (
+export const Card = React.memo(({ children, className, hover = true }: CardProps) => (
   <div className={cn(
-    'bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] gpu-accelerated fade-in',
+    'bg-card text-card-foreground rounded-xl border border-border shadow-sm transition-all duration-200 fade-in',
+    hover && 'hover:shadow-md hover:-translate-y-0.5',
     className
   )}>
     {children}
@@ -24,7 +26,7 @@ interface CardHeaderProps {
 }
 
 export const CardHeader = React.memo(({ children, className }: CardHeaderProps) => (
-  <div className={cn('mb-4', className)}>
+  <div className={cn('px-6 py-4 border-b border-border', className)}>
     {children}
   </div>
 ))
@@ -37,7 +39,7 @@ interface CardTitleProps {
 }
 
 export const CardTitle = React.memo(({ children, className }: CardTitleProps) => (
-  <h3 className={cn('text-xl font-semibold text-gray-900 dark:text-gray-100', className)}>
+  <h3 className={cn('text-base font-semibold text-foreground tracking-tight', className)}>
     {children}
   </h3>
 ))
@@ -50,9 +52,9 @@ interface CardContentProps {
 }
 
 export const CardContent = React.memo(({ children, className }: CardContentProps) => (
-  <div className={cn('', className)}>
+  <div className={cn('p-6', className)}>
     {children}
   </div>
 ))
 
-CardContent.displayName = 'CardContent' 
+CardContent.displayName = 'CardContent'

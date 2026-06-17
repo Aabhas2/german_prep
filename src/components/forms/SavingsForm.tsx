@@ -75,7 +75,7 @@ export function SavingsForm({ savingsGoal, onSubmit, onCancel }: SavingsFormProp
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-foreground/85 mb-1">
           Goal Title *
         </label>
         <input
@@ -84,14 +84,14 @@ export function SavingsForm({ savingsGoal, onSubmit, onCancel }: SavingsFormProp
           value={formData.title}
           onChange={handleChange}
           required
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="e.g., Study Abroad Fund"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground/85 mb-1">
             Target Amount *
           </label>
           <input
@@ -102,13 +102,13 @@ export function SavingsForm({ savingsGoal, onSubmit, onCancel }: SavingsFormProp
             required
             min="0"
             step="0.01"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="15000"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground/85 mb-1">
             Current Amount *
           </label>
           <input
@@ -119,7 +119,7 @@ export function SavingsForm({ savingsGoal, onSubmit, onCancel }: SavingsFormProp
             required
             min="0"
             step="0.01"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="8500"
           />
         </div>
@@ -127,14 +127,14 @@ export function SavingsForm({ savingsGoal, onSubmit, onCancel }: SavingsFormProp
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground/85 mb-1">
             Currency
           </label>
           <select
             name="currency"
             value={formData.currency}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="EUR">EUR (Euro)</option>
             <option value="USD">USD (US Dollar)</option>
@@ -143,7 +143,7 @@ export function SavingsForm({ savingsGoal, onSubmit, onCancel }: SavingsFormProp
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground/85 mb-1">
             Target Deadline
           </label>
           <input
@@ -151,13 +151,13 @@ export function SavingsForm({ savingsGoal, onSubmit, onCancel }: SavingsFormProp
             name="deadline"
             value={formData.deadline}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-foreground/85 mb-1">
           Description
         </label>
         <textarea
@@ -165,7 +165,7 @@ export function SavingsForm({ savingsGoal, onSubmit, onCancel }: SavingsFormProp
           value={formData.description}
           onChange={handleChange}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Describe your savings goal..."
         />
       </div>

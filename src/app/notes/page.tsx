@@ -152,7 +152,7 @@ export default function NotesPage() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-gray-600 dark:text-gray-400 overflow-hidden line-clamp-3">
+        <p className="text-muted-foreground overflow-hidden line-clamp-3">
           {note.content}
         </p>
         
@@ -164,8 +164,8 @@ export default function NotesPage() {
           ))}
         </div>
         
-        <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex justify-between items-center pt-4 border-t border-border">
+          <div className="flex items-center text-sm text-muted-foreground">
             <Calendar className="h-4 w-4 mr-1" />
             {formatDate(note.updatedAt)}
           </div>
@@ -211,8 +211,8 @@ export default function NotesPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Notes</h1>
-            <p className="text-gray-600 dark:text-gray-400">Organize your research and study notes</p>
+            <h1 className="text-2xl font-bold text-foreground">Notes</h1>
+            <p className="text-muted-foreground">Organize your research and study notes</p>
           </div>
           <Button onClick={handleAddNote}>
             <Plus className="h-4 w-4 mr-2" />

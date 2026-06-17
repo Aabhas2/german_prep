@@ -198,18 +198,18 @@ export default function TasksPage() {
     <Card className="mb-4 hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-medium text-gray-900 dark:text-gray-100">{task.title}</h3>
+          <h3 className="font-medium text-foreground">{task.title}</h3>
           <Badge variant={getPriorityVariant(task.priority)}>
             {task.priority}
           </Badge>
         </div>
         
         {task.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{task.description}</p>
+          <p className="text-sm text-muted-foreground mb-3">{task.description}</p>
         )}
         
-        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
-          <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{task.category}</span>
+        <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+          <span className="bg-gray-100  px-2 py-1 rounded">{task.category}</span>
           {task.dueDate && (
             <div className="flex items-center">
               <Calendar className="h-3 w-3 mr-1" />
@@ -218,7 +218,7 @@ export default function TasksPage() {
           )}
         </div>
 
-        <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center pt-2 border-t border-border">
           <div className="flex space-x-1">
             <Button variant="outline" size="sm" onClick={() => handleEditTask(task)} className="text-xs px-2 py-1">
               <Edit className="h-3 w-3 mr-1" />
@@ -267,7 +267,7 @@ export default function TasksPage() {
               <TaskCard key={task.id} task={task} />
             ))}
             {columnTasks.length === 0 && (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-8 text-muted-foreground">
                 <p>No tasks</p>
               </div>
             )}
@@ -287,8 +287,8 @@ export default function TasksPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Task Manager</h1>
-            <p className="text-gray-600 dark:text-gray-400">Organize and track your preparation tasks</p>
+            <h1 className="text-2xl font-bold text-foreground">Task Manager</h1>
+            <p className="text-muted-foreground">Organize and track your preparation tasks</p>
           </div>
           <Button onClick={() => setIsModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />

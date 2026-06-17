@@ -3,9 +3,10 @@
 import { useState, useCallback, memo } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Menu, X, GraduationCap, LogIn, LogOut, User } from 'lucide-react'
+import { Menu, X, GraduationCap, LogIn, LogOut, User, Sun, Moon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import { useTheme } from '@/contexts/ThemeContext'
 
 const navigation = [
   { name: 'Dashboard', href: '/' },
@@ -24,6 +25,7 @@ const Header = memo(function Header() {
   const pathname = usePathname()
   const router = useRouter()
   const { user, logout } = useAuth()
+  const { settings, updateSettings } = useTheme()
 
   const toggleMobileMenu = useCallback(() => {
     setMobileMenuOpen(prev => !prev)
@@ -42,48 +44,74 @@ const Header = memo(function Header() {
     }
   }
 
+  const toggleTheme = () => {
+    const next = settings.theme === 'dark' ? 'light' : 'dark'
+    updateSettings({ theme: next })
+  }
+
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 transition-colors">
+    <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b border-border shadow-sm transition-colors duration-300">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
         <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <GraduationCap className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900 dark:text-gray-100">Prep Hub</span>
-            </Link>
+
+          {/* Brand */}
+          <Link href="/" className="flex items-center space-x-2.5 group">
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
+              <GraduationCap className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-sm font-bold text-foreground tracking-tight">Prep Hub</span>
+              <span className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">Study Abroad</span>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-1">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200',
+                  pathname === item.href
+                    ? 'bg-primary/10 text-primary font-semibold'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                {item.name}
+              </Link>
+            ))}
           </div>
 
-          {/* Desktop navigation */}
-          <div className="hidden md:flex items-center space-x-4">
-            <div className="flex items-baseline space-x-2">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    'px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                    pathname === item.href
-                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100'
-                  )}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
+          {/* Right side actions */}
+          <div className="flex items-center space-x-2">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              title="Toggle theme"
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              {settings.theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </button>
 
-            {/* Auth Visual Section */}
-            <div className="border-l border-gray-200 dark:border-gray-700 h-6 pl-4 flex items-center space-x-3">
+            {/* Auth Section */}
+            <div className="hidden md:flex items-center space-x-2 border-l border-border pl-3">
               {user ? (
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    <User className="h-4 w-4 text-gray-500" />
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-muted text-sm font-medium text-foreground">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <User className="h-3 w-3 text-primary" />
+                    </div>
                     <span className="max-w-[100px] truncate">{user.displayName || user.email}</span>
                   </div>
                   <button
                     onClick={handleLogout}
                     title="Sign Out"
-                    className="p-1 text-gray-500 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                    className="p-2 rounded-lg text-muted-foreground hover:text-danger hover:bg-danger/10 transition-colors"
                   >
                     <LogOut className="h-4 w-4" />
                   </button>
@@ -91,42 +119,25 @@ const Header = memo(function Header() {
               ) : (
                 <Link
                   href="/login"
-                  className="flex items-center space-x-1 px-3 py-1.5 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm"
+                  className="flex items-center space-x-1.5 px-4 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium shadow-sm hover:bg-primary/90 transition-colors"
                 >
-                  <LogIn className="h-4 w-4" />
+                  <LogIn className="h-3.5 w-3.5" />
                   <span>Sign In</span>
                 </Link>
               )}
             </div>
-          </div>
 
-          {/* Mobile menu button */}
-          <div className="flex items-center md:hidden space-x-2">
-            {user ? (
-              <button
-                onClick={handleLogout}
-                className="p-2 text-gray-500 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
-            ) : (
-              <Link
-                href="/login"
-                className="p-2 text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-              >
-                <LogIn className="h-5 w-5" />
-              </Link>
-            )}
+            {/* Mobile menu button */}
             <button
               type="button"
-              className="bg-white dark:bg-gray-800 rounded-md p-2 inline-flex items-center justify-center text-gray-400 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               onClick={toggleMobileMenu}
             >
               <span className="sr-only">Open main menu</span>
               {mobileMenuOpen ? (
-                <X className="block h-6 w-6" aria-hidden="true" />
+                <X className="h-5 w-5" aria-hidden="true" />
               ) : (
-                <Menu className="block h-6 w-6" aria-hidden="true" />
+                <Menu className="h-5 w-5" aria-hidden="true" />
               )}
             </button>
           </div>
@@ -134,23 +145,46 @@ const Header = memo(function Header() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden pb-3">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="md:hidden pb-4 slide-down">
+            <div className="pt-2 pb-3 space-y-1 border-t border-border">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    'block px-3 py-2 rounded-md text-base font-medium transition-colors',
+                    'block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                     pathname === item.href
-                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100'
+                      ? 'bg-primary/10 text-primary font-semibold'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   )}
                   onClick={closeMobileMenu}
                 >
                   {item.name}
                 </Link>
               ))}
+              <div className="pt-2 mt-2 border-t border-border">
+                {user ? (
+                  <div className="flex items-center justify-between px-3 py-2">
+                    <span className="text-sm text-muted-foreground truncate">{user.displayName || user.email}</span>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center space-x-1 text-sm text-danger hover:opacity-80"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sign out</span>
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="flex items-center justify-center space-x-1.5 mx-3 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium"
+                    onClick={closeMobileMenu}
+                  >
+                    <LogIn className="h-4 w-4" />
+                    <span>Sign In</span>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -159,4 +193,4 @@ const Header = memo(function Header() {
   )
 })
 
-export { Header } 
+export { Header }

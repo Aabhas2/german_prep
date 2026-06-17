@@ -82,11 +82,11 @@ export default function FinancePage() {
 
   const getCategoryColor = (category: FinanceItem['category']) => {
     switch (category) {
-      case 'Application': return 'bg-blue-100 text-blue-800'
-      case 'Travel': return 'bg-green-100 text-green-800'
-      case 'Tuition': return 'bg-purple-100 text-purple-800'
-      case 'Living': return 'bg-yellow-100 text-yellow-800'
-      case 'Other': return 'bg-gray-100 text-gray-800'
+      case 'Application': return 'status-info'
+      case 'Travel':      return 'status-success'
+      case 'Tuition':     return 'bg-primary/10 text-primary border border-primary/20'
+      case 'Living':      return 'status-warning'
+      case 'Other':       return 'status-neutral'
     }
   }
 
@@ -307,8 +307,8 @@ export default function FinancePage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Finance Planner</h1>
-            <p className="text-gray-600 dark:text-gray-400">Track your study abroad expenses and budget</p>
+            <h1 className="text-2xl font-bold text-foreground">Finance Planner</h1>
+            <p className="text-muted-foreground text-sm">Track your study abroad expenses and budget</p>
           </div>
           <div className="flex items-center space-x-4">
             <CurrencyToggle
@@ -331,8 +331,8 @@ export default function FinancePage() {
           <Card>
             <CardContent className="flex items-center justify-between p-6">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Estimated</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <p className="text-sm font-medium text-muted-foreground">Total Estimated</p>
+                <p className="text-2xl font-bold text-foreground">
                   <ClientCurrency 
                     amount={totalEstimated} 
                     currency={settings.currency.primary} 
@@ -340,15 +340,15 @@ export default function FinancePage() {
                   />
                 </p>
               </div>
-              <DollarSign className="h-8 w-8 text-blue-600" />
+              <DollarSign className="h-8 w-8 text-info" />
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="flex items-center justify-between p-6">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Paid</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-sm font-medium text-muted-foreground">Total Paid</p>
+                <p className="text-2xl font-bold text-success">
                   <ClientCurrency 
                     amount={totalPaid} 
                     currency={settings.currency.primary} 
@@ -356,15 +356,15 @@ export default function FinancePage() {
                   />
                 </p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-8 w-8 text-success" />
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="flex items-center justify-between p-6">
               <div>
-                <p className="text-sm font-medium text-gray-600">Remaining</p>
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-sm font-medium text-muted-foreground">Remaining</p>
+                <p className="text-2xl font-bold text-danger">
                   <ClientCurrency 
                     amount={totalRemaining} 
                     currency={settings.currency.primary} 
@@ -372,19 +372,19 @@ export default function FinancePage() {
                   />
                 </p>
               </div>
-              <TrendingDown className="h-8 w-8 text-red-600" />
+              <TrendingDown className="h-8 w-8 text-danger" />
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="flex items-center justify-between p-6">
               <div>
-                <p className="text-sm font-medium text-gray-600">Budget Progress</p>
-                <p className="text-2xl font-bold text-purple-600">
+                <p className="text-sm font-medium text-muted-foreground">Budget Progress</p>
+                <p className="text-2xl font-bold text-primary">
                   {Math.round((totalPaid / totalEstimated) * 100)}%
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-purple-600" />
+              <TrendingUp className="h-8 w-8 text-primary" />
             </CardContent>
           </Card>
         </div>
@@ -405,8 +405,8 @@ export default function FinancePage() {
               {Object.entries(categoryTotals).map(([category, totals]) => (
                 <div key={category} className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-700">{category}</span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm font-medium text-foreground">{category}</span>
+                    <span className="text-sm text-muted-foreground">
                       <ClientCurrency 
                         amount={totals.paid} 
                         currency={settings.currency.primary} 
@@ -438,20 +438,20 @@ export default function FinancePage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Description</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-600">Estimated</th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-600">Actual</th>
-                    <th className="text-center py-3 px-4 font-medium text-gray-600">Status</th>
-                    <th className="text-center py-3 px-4 font-medium text-gray-600">Actions</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-3 px-4">Description</th>
+                    <th className="text-left py-3 px-4">Category</th>
+                    <th className="text-right py-3 px-4">Estimated</th>
+                    <th className="text-right py-3 px-4">Actual</th>
+                    <th className="text-center py-3 px-4">Status</th>
+                    <th className="text-center py-3 px-4">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {financeItems.map((item) => (
-                    <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <tr key={item.id}>
                       <td className="py-3 px-4">
-                        <div className="font-medium text-gray-900">{item.description}</div>
+                        <div className="font-medium text-foreground">{item.description}</div>
                       </td>
                       <td className="py-3 px-4">
                         <Badge className={getCategoryColor(item.category)}>
@@ -516,34 +516,34 @@ export default function FinancePage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+              <div className="input-group">
+                <label className="input-label">Amount</label>
                 <input 
                   type="number" 
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                  className="input-field"
                   placeholder="Enter amount"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">From</label>
+              <div className="input-group">
+                <label className="input-label">From</label>
                 <select 
                   value={fromCurrency}
                   onChange={(e) => setFromCurrency(e.target.value as 'USD' | 'EUR' | 'INR')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                 >
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
                   <option value="INR">INR</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">To</label>
+              <div className="input-group">
+                <label className="input-label">To</label>
                 <select 
                   value={toCurrency}
                   onChange={(e) => setToCurrency(e.target.value as 'USD' | 'EUR' | 'INR')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                 >
                   <option value="EUR">EUR</option>
                   <option value="USD">USD</option>
@@ -551,16 +551,16 @@ export default function FinancePage() {
                 </select>
               </div>
             </div>
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <p className="text-center text-lg font-medium text-gray-900">
+            <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
+              <p className="text-center text-lg font-semibold text-foreground">
                 Converted Amount: <ClientCurrency 
                   amount={convertCurrencyAmount()} 
                   currency={toCurrency} 
                   showSymbol={true}
                 />
               </p>
-              <p className="text-center text-sm text-gray-600 mt-1">
-                Exchange rates are indicative and may vary (1 EUR = {settings.currency.exchangeRates.EUR_USD.toFixed(2)} USD, 1 EUR = {settings.currency.exchangeRates.EUR_INR.toFixed(2)} INR)
+              <p className="text-center text-sm text-muted-foreground mt-1">
+                Exchange rates are indicative and may vary (1 EUR = {(settings.currency.exchangeRates?.USD || 1.1).toFixed(2)} USD, 1 EUR = {(settings.currency.exchangeRates?.INR || 90).toFixed(2)} INR)
               </p>
             </div>
           </CardContent>
@@ -573,10 +573,10 @@ export default function FinancePage() {
           </CardHeader>
           <CardContent>
             {savingsGoals.length === 0 ? (
-              <div className="text-center py-8">
-                <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No savings goals yet</h3>
-                <p className="text-gray-600 mb-4">Start by setting your first savings goal</p>
+              <div className="text-center py-10">
+                <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">No savings goals yet</h3>
+                <p className="text-muted-foreground mb-4">Start by setting your first savings goal</p>
                 <Button onClick={() => setIsSavingsModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Savings Goal
@@ -585,9 +585,9 @@ export default function FinancePage() {
             ) : (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Total Target</p>
-                    <p className="text-2xl font-bold text-blue-600">
+                  <div className="text-center p-4 bg-info/10 border border-info/20 rounded-xl">
+                    <p className="text-sm text-muted-foreground">Total Target</p>
+                    <p className="text-2xl font-bold text-info">
                       <ClientCurrency 
                         amount={totalSavingsTarget} 
                         currency={settings.currency.primary} 
@@ -595,9 +595,9 @@ export default function FinancePage() {
                       />
                     </p>
                   </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Total Saved</p>
-                    <p className="text-2xl font-bold text-green-600">
+                  <div className="text-center p-4 bg-success/10 border border-success/20 rounded-xl">
+                    <p className="text-sm text-muted-foreground">Total Saved</p>
+                    <p className="text-2xl font-bold text-success">
                       <ClientCurrency 
                         amount={totalSavingsCurrent} 
                         currency={settings.currency.primary} 
@@ -614,12 +614,12 @@ export default function FinancePage() {
                     const convertedCurrent = convertCurrency(goal.currentAmount, goal.currency as any, settings.currency.primary, settings.currency.exchangeRates)
                     
                     return (
-                      <div key={goal.id} className="border border-gray-200 rounded-lg p-4">
+                      <div key={goal.id} className="border border-border rounded-xl p-4 bg-card">
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <h4 className="font-medium text-gray-900">{goal.title}</h4>
+                            <h4 className="font-medium text-foreground">{goal.title}</h4>
                             {goal.description && (
-                              <p className="text-sm text-gray-600">{goal.description}</p>
+                              <p className="text-sm text-muted-foreground">{goal.description}</p>
                             )}
                           </div>
                           <div className="flex space-x-2">
@@ -647,7 +647,7 @@ export default function FinancePage() {
                             <span>{progress.toFixed(1)}%</span>
                           </div>
                           <ProgressBar value={progress} />
-                          <div className="flex justify-between text-sm text-gray-600">
+                          <div className="flex justify-between text-sm text-muted-foreground">
                             <span>
                               <ClientCurrency 
                                 amount={convertedCurrent} 
@@ -664,7 +664,7 @@ export default function FinancePage() {
                             </span>
                           </div>
                           {goal.deadline && (
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                               Target Date: {formatDate(goal.deadline)}
                             </p>
                           )}

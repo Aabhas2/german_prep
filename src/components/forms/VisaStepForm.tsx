@@ -82,15 +82,15 @@ export const VisaStepForm = ({ visaStep, onSave, onCancel }: VisaStepFormProps) 
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Step Title *
           </label>
           <input
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.title ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.title ? 'border-red-500' : 'border-input'
             }`}
             placeholder="e.g., Gather Required Documents"
           />
@@ -98,13 +98,13 @@ export const VisaStepForm = ({ visaStep, onSave, onCancel }: VisaStepFormProps) 
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Status
           </label>
           <select
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value as VisaStep['status'] })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="Pending">Pending</option>
             <option value="In Progress">In Progress</option>
@@ -114,15 +114,15 @@ export const VisaStepForm = ({ visaStep, onSave, onCancel }: VisaStepFormProps) 
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground/85 mb-2">
           Description *
         </label>
         <textarea
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={3}
-          className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.description ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+          className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            errors.description ? 'border-red-500' : 'border-input'
           }`}
           placeholder="Describe what needs to be done in this step"
         />
@@ -130,19 +130,19 @@ export const VisaStepForm = ({ visaStep, onSave, onCancel }: VisaStepFormProps) 
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground/85 mb-2">
           Due Date (Optional)
         </label>
         <input
           type="date"
           value={formData.dueDate}
           onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground/85 mb-2">
           Required Documents *
         </label>
         {formData.documents.map((document, index) => (
@@ -151,7 +151,7 @@ export const VisaStepForm = ({ visaStep, onSave, onCancel }: VisaStepFormProps) 
               type="text"
               value={document}
               onChange={(e) => handleDocumentChange(index, e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter required document"
             />
             {formData.documents.length > 1 && (
@@ -179,19 +179,19 @@ export const VisaStepForm = ({ visaStep, onSave, onCancel }: VisaStepFormProps) 
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground/85 mb-2">
           Notes (Optional)
         </label>
         <textarea
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Add any additional notes or instructions"
         />
       </div>
 
-      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-600">
+      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 ">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>

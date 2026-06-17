@@ -259,8 +259,8 @@ export default function ScholarshipsPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Scholarships</h1>
-            <p className="text-gray-600 dark:text-gray-400">Track and manage your scholarship applications</p>
+            <h1 className="text-2xl font-bold text-foreground">Scholarships</h1>
+            <p className="text-muted-foreground">Track and manage your scholarship applications</p>
           </div>
           <Button onClick={handleAddScholarship}>
             <Plus className="h-4 w-4 mr-2" />
@@ -273,8 +273,8 @@ export default function ScholarshipsPage() {
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Scholarships</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{scholarships.length}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Scholarships</p>
+                <p className="text-2xl font-bold text-foreground">{scholarships.length}</p>
               </div>
               <Award className="h-8 w-8 text-blue-600" />
             </CardContent>
@@ -342,21 +342,21 @@ export default function ScholarshipsPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Popular German Scholarships</h4>
+                <h4 className="font-medium text-foreground mb-3">Popular German Scholarships</h4>
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <div className="flex justify-between items-center p-2 bg-secondary/30 border border-border/30 rounded">
                     <span className="text-sm">DAAD Scholarships</span>
                     <Button variant="ghost" size="sm">
                       <ExternalLink className="h-3 w-3" />
                     </Button>
                   </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <div className="flex justify-between items-center p-2 bg-secondary/30 border border-border/30 rounded">
                     <span className="text-sm">Deutschland Stipendium</span>
                     <Button variant="ghost" size="sm">
                       <ExternalLink className="h-3 w-3" />
                     </Button>
                   </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <div className="flex justify-between items-center p-2 bg-secondary/30 border border-border/30 rounded">
                     <span className="text-sm">Erasmus+ Program</span>
                     <Button variant="ghost" size="sm">
                       <ExternalLink className="h-3 w-3" />
@@ -365,8 +365,8 @@ export default function ScholarshipsPage() {
                 </div>
               </div>
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Application Tips</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <h4 className="font-medium text-foreground mb-3">Application Tips</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li>• Start applications early, deadlines are strict</li>
                   <li>• Tailor your motivation letter to each scholarship</li>
                   <li>• Highlight academic achievements and extracurriculars</li>

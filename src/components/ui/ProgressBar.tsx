@@ -7,21 +7,14 @@ interface ProgressBarProps {
   label?: string
   showPercentage?: boolean
   className?: string
-  variant?: 'default' | 'success' | 'warning' | 'error'
+  variant?: 'default' | 'success' | 'warning' | 'danger'
 }
 
-const variantStyles = {
-  default: 'bg-blue-500',
-  success: 'bg-green-500',
-  warning: 'bg-yellow-500',
-  error: 'bg-red-500'
-}
-
-export const ProgressBar = React.memo(({ 
-  value, 
-  max = 100, 
-  label, 
-  showPercentage = true, 
+export const ProgressBar = React.memo(({
+  value,
+  max = 100,
+  label,
+  showPercentage = true,
   className,
   variant = 'default'
 }: ProgressBarProps) => {
@@ -32,25 +25,32 @@ export const ProgressBar = React.memo(({
 
   const progressStyle = useMemo(() => ({
     width: `${percentage}%`,
-    transition: 'width 0.3s ease-out'
   }), [percentage])
+
+  // Determine color based on variant or auto-pick based on percentage
+  const barColor = useMemo(() => {
+    if (variant === 'success') return 'bg-success'
+    if (variant === 'warning') return 'bg-warning'
+    if (variant === 'danger')  return 'bg-danger'
+    // default: auto-color based on percentage
+    if (percentage >= 80) return 'bg-danger'
+    if (percentage >= 50) return 'bg-warning'
+    return 'bg-primary'
+  }, [variant, percentage])
 
   return (
     <div className={cn('w-full', className)}>
       {label && (
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium text-gray-700">{label}</span>
+        <div className="flex justify-between items-center mb-1.5">
+          <span className="text-sm font-medium text-foreground">{label}</span>
           {showPercentage && (
-            <span className="text-sm text-gray-500">{percentage.toFixed(1)}%</span>
+            <span className="text-xs text-muted-foreground font-medium">{percentage.toFixed(0)}%</span>
           )}
         </div>
       )}
-      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-        <div 
-          className={cn(
-            'h-full rounded-full transition-all duration-300 ease-out',
-            variantStyles[variant]
-          )}
+      <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+        <div
+          className={cn('h-full rounded-full transition-all duration-500 ease-out', barColor)}
           style={progressStyle}
           role="progressbar"
           aria-valuenow={percentage}
@@ -62,4 +62,4 @@ export const ProgressBar = React.memo(({
   )
 })
 
-ProgressBar.displayName = 'ProgressBar' 
+ProgressBar.displayName = 'ProgressBar'

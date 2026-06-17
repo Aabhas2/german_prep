@@ -189,27 +189,27 @@ export default function ExamsPage() {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Fee:</span>
-            <span className="font-medium text-gray-900 dark:text-gray-100">€{exam.fee}</span>
+            <span className="text-sm text-muted-foreground">Fee:</span>
+            <span className="font-medium text-foreground">€{exam.fee}</span>
           </div>
           
           {exam.plannedDate && (
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Planned Date:</span>
-              <span className="font-medium text-gray-900 dark:text-gray-100">{formatDate(exam.plannedDate)}</span>
+              <span className="text-sm text-muted-foreground">Planned Date:</span>
+              <span className="font-medium text-foreground">{formatDate(exam.plannedDate)}</span>
             </div>
           )}
           
           {exam.actualDate && (
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Completed:</span>
-              <span className="font-medium text-gray-900 dark:text-gray-100">{formatDate(exam.actualDate)}</span>
+              <span className="text-sm text-muted-foreground">Completed:</span>
+              <span className="font-medium text-foreground">{formatDate(exam.actualDate)}</span>
             </div>
           )}
           
           {exam.score && (
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Score:</span>
+              <span className="text-sm text-muted-foreground">Score:</span>
               <span className="font-medium text-green-600">{exam.score}</span>
             </div>
           )}
@@ -217,10 +217,10 @@ export default function ExamsPage() {
 
         {exam.preparationResources.length > 0 && (
           <div>
-            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Preparation Resources</h4>
+            <h4 className="font-medium text-foreground mb-2">Preparation Resources</h4>
             <div className="space-y-1">
               {exam.preparationResources.map((resource, index) => (
-                <div key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                <div key={index} className="flex items-center text-sm text-muted-foreground">
                   <BookOpen className="h-3 w-3 mr-2" />
                   {resource}
                 </div>
@@ -229,7 +229,7 @@ export default function ExamsPage() {
           </div>
         )}
 
-        <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center pt-4 border-t border-border">
           <div className="flex space-x-2">
             <Button 
               variant="outline" 
@@ -290,8 +290,8 @@ export default function ExamsPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Exams</h1>
-            <p className="text-gray-600 dark:text-gray-400">Track your standardized tests and preparations</p>
+            <h1 className="text-2xl font-bold text-foreground">Exams</h1>
+            <p className="text-muted-foreground">Track your standardized tests and preparations</p>
           </div>
           <Button onClick={handleAddExam}>
             <Plus className="h-4 w-4 mr-2" />

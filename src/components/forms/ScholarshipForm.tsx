@@ -94,15 +94,15 @@ export const ScholarshipForm = ({ scholarship, onSave, onCancel }: ScholarshipFo
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Scholarship Name *
           </label>
           <input
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.name ? 'border-red-500' : 'border-input'
             }`}
             placeholder="e.g., DAAD Scholarship"
           />
@@ -110,13 +110,13 @@ export const ScholarshipForm = ({ scholarship, onSave, onCancel }: ScholarshipFo
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Status
           </label>
           <select
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value as Scholarship['status'] })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="To Apply">To Apply</option>
             <option value="Applied">Applied</option>
@@ -128,7 +128,7 @@ export const ScholarshipForm = ({ scholarship, onSave, onCancel }: ScholarshipFo
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Amount *
           </label>
           <input
@@ -137,21 +137,21 @@ export const ScholarshipForm = ({ scholarship, onSave, onCancel }: ScholarshipFo
             step="0.01"
             value={formData.amount}
             onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-            className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.amount ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.amount ? 'border-red-500' : 'border-input'
             }`}
           />
           {errors.amount && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.amount}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Currency
           </label>
           <select
             value={formData.currency}
             onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="EUR">EUR</option>
             <option value="USD">USD</option>
@@ -161,30 +161,30 @@ export const ScholarshipForm = ({ scholarship, onSave, onCancel }: ScholarshipFo
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground/85 mb-2">
           Deadline *
         </label>
         <input
           type="date"
           value={formData.deadline}
           onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-          className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.deadline ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+          className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            errors.deadline ? 'border-red-500' : 'border-input'
           }`}
         />
         {errors.deadline && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.deadline}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground/85 mb-2">
           Eligibility Criteria *
         </label>
         <textarea
           value={formData.eligibility}
           onChange={(e) => setFormData({ ...formData, eligibility: e.target.value })}
           rows={3}
-          className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.eligibility ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+          className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            errors.eligibility ? 'border-red-500' : 'border-input'
           }`}
           placeholder="Describe who is eligible for this scholarship"
         />
@@ -192,20 +192,20 @@ export const ScholarshipForm = ({ scholarship, onSave, onCancel }: ScholarshipFo
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground/85 mb-2">
           Website (Optional)
         </label>
         <input
           type="url"
           value={formData.website}
           onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="https://example.com"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground/85 mb-2">
           Requirements *
         </label>
         {formData.requirements.map((requirement, index) => (
@@ -214,7 +214,7 @@ export const ScholarshipForm = ({ scholarship, onSave, onCancel }: ScholarshipFo
               type="text"
               value={requirement}
               onChange={(e) => handleRequirementChange(index, e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter requirement"
             />
             {formData.requirements.length > 1 && (
@@ -241,7 +241,7 @@ export const ScholarshipForm = ({ scholarship, onSave, onCancel }: ScholarshipFo
         {errors.requirements && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.requirements}</p>}
       </div>
 
-      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-600">
+      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 ">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>

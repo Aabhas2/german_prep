@@ -218,8 +218,8 @@ export default function SettingsPage() {
     <Layout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage your app preferences and data</p>
+          <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+          <p className="text-muted-foreground">Manage your app preferences and data</p>
         </div>
 
         {/* Personal Details */}
@@ -233,14 +233,14 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-foreground/85 mb-2">
                   Full Name
                 </label>
                 <input
                   type="text"
                   value={settings.personalDetails.name}
                   onChange={(e) => handlePersonalDetailsChange('name', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -263,7 +263,7 @@ export default function SettingsPage() {
                 <select
                   value={settings.personalDetails.targetCountry}
                   onChange={(e) => handlePersonalDetailsChange('targetCountry', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-card text-foreground"
                 >
                   <option value="Germany">Germany</option>
                   <option value="Canada">Canada</option>
@@ -302,7 +302,7 @@ export default function SettingsPage() {
                 <button
                   onClick={() => updateSettings({ ...settings, theme: 'light' })}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-md border transition-colors ${
-                    settings.theme === 'light' ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700'
+                    settings.theme === 'light' ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'border-gray-300 hover:bg-gray-50 " dark:hover:bg-gray-700'
                   }`}
                 >
                   <Sun className="h-4 w-4" />
@@ -311,7 +311,7 @@ export default function SettingsPage() {
                 <button
                   onClick={() => updateSettings({ ...settings, theme: 'dark' })}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-md border transition-colors ${
-                    settings.theme === 'dark' ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700'
+                    settings.theme === 'dark' ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'border-gray-300 hover:bg-gray-50 " dark:hover:bg-gray-700'
                   }`}
                 >
                   <Moon className="h-4 w-4" />
@@ -337,7 +337,7 @@ export default function SettingsPage() {
                 <button
                   onClick={() => updateSettings({ ...settings, notifications: { ...settings.notifications, deadlineReminders: !settings.notifications.deadlineReminders } })}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    settings.notifications.deadlineReminders ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
+                    settings.notifications.deadlineReminders ? 'bg-blue-600' : 'bg-gray-200 "'
                   }`}
                 >
                   <span
@@ -480,103 +480,58 @@ export default function SettingsPage() {
             </div>
 
             {/* Manual Rate Override */}
-            <details className="border border-gray-200 rounded-lg">
-              <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <details className="border border-border rounded-lg">
+              <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-foreground hover:bg-secondary/20">
                 Manual Rate Override (Advanced)
               </summary>
-              <div className="p-4 border-t border-gray-200 space-y-4">
-                <p className="text-sm text-gray-600 mb-4">
+              <div className="p-4 border-t border-border space-y-4">
+                <p className="text-sm text-muted-foreground mb-4">
                   Manually adjust exchange rates. These will be overwritten when auto-update is enabled.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      USD → EUR
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      EUR → USD (1 EUR = x USD)
                     </label>
                     <input
                       type="number"
                       step="0.0001"
-                      value={settings.currency.exchangeRates.USD_EUR}
+                      value={settings.currency.exchangeRates.USD || 1.1}
                       onChange={(e) => handleSettingChange('currency', 'exchangeRates', {
                         ...settings.currency.exchangeRates,
-                        USD_EUR: parseFloat(e.target.value) || 0.92
+                        USD: parseFloat(e.target.value) || 1.1
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-border bg-card text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      USD → INR
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      EUR → INR (1 EUR = x INR)
                     </label>
                     <input
                       type="number"
                       step="0.01"
-                      value={settings.currency.exchangeRates.USD_INR}
+                      value={settings.currency.exchangeRates.INR || 90}
                       onChange={(e) => handleSettingChange('currency', 'exchangeRates', {
                         ...settings.currency.exchangeRates,
-                        USD_INR: parseFloat(e.target.value) || 83.25
+                        INR: parseFloat(e.target.value) || 90
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-border bg-card text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      EUR → USD
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      EUR → GBP (1 EUR = x GBP)
                     </label>
                     <input
                       type="number"
                       step="0.0001"
-                      value={settings.currency.exchangeRates.EUR_USD}
+                      value={settings.currency.exchangeRates.GBP || 0.85}
                       onChange={(e) => handleSettingChange('currency', 'exchangeRates', {
                         ...settings.currency.exchangeRates,
-                        EUR_USD: parseFloat(e.target.value) || 1.09
+                        GBP: parseFloat(e.target.value) || 0.85
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      EUR → INR
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={settings.currency.exchangeRates.EUR_INR}
-                      onChange={(e) => handleSettingChange('currency', 'exchangeRates', {
-                        ...settings.currency.exchangeRates,
-                        EUR_INR: parseFloat(e.target.value) || 90.50
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      INR → USD
-                    </label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      value={settings.currency.exchangeRates.INR_USD}
-                      onChange={(e) => handleSettingChange('currency', 'exchangeRates', {
-                        ...settings.currency.exchangeRates,
-                        INR_USD: parseFloat(e.target.value) || 0.012
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      INR → EUR
-                    </label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      value={settings.currency.exchangeRates.INR_EUR}
-                      onChange={(e) => handleSettingChange('currency', 'exchangeRates', {
-                        ...settings.currency.exchangeRates,
-                        INR_EUR: parseFloat(e.target.value) || 0.011
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-border bg-card text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
                 </div>

@@ -217,48 +217,56 @@ export default function Dashboard() {
     <Layout>
       <div className="space-y-8">
         {/* Welcome Section */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Welcome to Your Germany Prep Hub</h1>
-          <p className="text-gray-600 dark:text-gray-400">Track your study abroad preparation journey</p>
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border border-border p-8 text-center">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-16 translate-x-16" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/5 rounded-full translate-y-12 -translate-x-12" />
+          <h1 className="text-3xl font-bold text-foreground mb-2 relative">Welcome to Your {settings.personalDetails.targetCountry || 'Germany'} Prep Hub</h1>
+          <p className="text-muted-foreground relative">Track and manage your entire study abroad preparation journey</p>
         </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
-            <CardContent className="flex items-center justify-between">
+            <CardContent className="flex items-center justify-between p-6">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Universities</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{universities.length}</p>
+                <p className="text-sm font-medium text-muted-foreground">Universities</p>
+                <p className="text-2xl font-bold text-foreground">{universities.length}</p>
               </div>
-              <BookOpen className="h-8 w-8 text-blue-600" />
+              <div className="w-12 h-12 rounded-xl bg-info/10 flex items-center justify-center">
+                <BookOpen className="h-6 w-6 text-info" />
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="flex items-center justify-between">
+            <CardContent className="flex items-center justify-between p-6">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed Tasks</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.completedTasks}/{stats.totalTasks}</p>
+                <p className="text-sm font-medium text-muted-foreground">Completed Tasks</p>
+                <p className="text-2xl font-bold text-foreground">{stats.completedTasks}/{stats.totalTasks}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
+                <CheckCircle className="h-6 w-6 text-success" />
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="flex items-center justify-between">
+            <CardContent className="flex items-center justify-between p-6">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Exams</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{exams.length}</p>
+                <p className="text-sm font-medium text-muted-foreground">Exams</p>
+                <p className="text-2xl font-bold text-foreground">{exams.length}</p>
               </div>
-              <FileText className="h-8 w-8 text-purple-600" />
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <FileText className="h-6 w-6 text-primary" />
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="flex items-center justify-between">
+            <CardContent className="flex items-center justify-between p-6">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Budget Used</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <p className="text-sm font-medium text-muted-foreground">Budget Used</p>
+                <p className="text-2xl font-bold text-foreground">
                   <ClientCurrency 
                     amount={financialStats.totalPaid} 
                     currency={settings.currency.primary} 
@@ -266,7 +274,9 @@ export default function Dashboard() {
                   />
                 </p>
               </div>
-              <DollarSign className="h-8 w-8 text-yellow-600" />
+              <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-accent" />
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -284,14 +294,14 @@ export default function Dashboard() {
                   label="Preparation Completion" 
                   className="mb-4" 
                 />
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600 dark:text-gray-400">Total Tasks:</span>
-                    <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{stats.totalTasks}</span>
+                <div className="grid grid-cols-2 gap-4 text-sm mt-4">
+                  <div className="flex justify-between px-3 py-2 bg-muted/40 rounded-lg">
+                    <span className="text-muted-foreground">Total Tasks</span>
+                    <span className="font-semibold text-foreground">{stats.totalTasks}</span>
                   </div>
-                  <div>
-                    <span className="text-gray-600 dark:text-gray-400">Completed:</span>
-                    <span className="ml-2 font-medium text-green-600">{stats.completedTasks}</span>
+                  <div className="flex justify-between px-3 py-2 bg-success/10 rounded-lg">
+                    <span className="text-muted-foreground">Completed</span>
+                    <span className="font-semibold text-success">{stats.completedTasks}</span>
                   </div>
                 </div>
               </CardContent>
@@ -302,25 +312,25 @@ export default function Dashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Upcoming Deadlines</CardTitle>
-              <Calendar className="h-5 w-5 text-gray-400" />
+              <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               {upcomingDeadlines.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {upcomingDeadlines.map((deadline, index) => (
-                    <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                    <div key={index} className="flex items-center justify-between py-2.5 border-b border-border last:border-0">
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{deadline.title}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{deadline.type}</p>
+                        <p className="font-medium text-foreground text-sm">{deadline.title}</p>
+                        <p className="text-xs text-muted-foreground">{deadline.type}</p>
                       </div>
-                      <Badge variant="default">
+                      <Badge variant="info">
                         {formatDate(deadline.date)}
                       </Badge>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 dark:text-gray-400">No upcoming deadlines</p>
+                <p className="text-muted-foreground text-sm text-center py-4">No upcoming deadlines 🎉</p>
               )}
             </CardContent>
           </Card>
@@ -332,39 +342,43 @@ export default function Dashboard() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Button 
-                variant="outline" 
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <button
                 onClick={() => handleQuickAction('university')}
-                className="h-20 flex flex-col items-center justify-center space-y-2"
+                className="flex flex-col items-center justify-center gap-2.5 p-5 rounded-xl border border-border bg-card hover:bg-muted/40 hover:border-primary/30 transition-all duration-200 group"
               >
-                <BookOpen className="h-6 w-6" />
-                <span>Add University</span>
-              </Button>
-              <Button 
-                variant="outline" 
+                <div className="w-10 h-10 rounded-xl bg-info/10 flex items-center justify-center group-hover:bg-info/20 transition-colors">
+                  <BookOpen className="h-5 w-5 text-info" />
+                </div>
+                <span className="text-sm font-medium text-foreground">Add University</span>
+              </button>
+              <button
                 onClick={() => handleQuickAction('exam')}
-                className="h-20 flex flex-col items-center justify-center space-y-2"
+                className="flex flex-col items-center justify-center gap-2.5 p-5 rounded-xl border border-border bg-card hover:bg-muted/40 hover:border-primary/30 transition-all duration-200 group"
               >
-                <FileText className="h-6 w-6" />
-                <span>Add Exam</span>
-              </Button>
-              <Button 
-                variant="outline" 
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <FileText className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-sm font-medium text-foreground">Add Exam</span>
+              </button>
+              <button
                 onClick={() => handleQuickAction('task')}
-                className="h-20 flex flex-col items-center justify-center space-y-2"
+                className="flex flex-col items-center justify-center gap-2.5 p-5 rounded-xl border border-border bg-card hover:bg-muted/40 hover:border-primary/30 transition-all duration-200 group"
               >
-                <Plus className="h-6 w-6" />
-                <span>Add Task</span>
-              </Button>
-              <Button 
-                variant="outline" 
+                <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">
+                  <Plus className="h-5 w-5 text-success" />
+                </div>
+                <span className="text-sm font-medium text-foreground">Add Task</span>
+              </button>
+              <button
                 onClick={() => handleQuickAction('note')}
-                className="h-20 flex flex-col items-center justify-center space-y-2"
+                className="flex flex-col items-center justify-center gap-2.5 p-5 rounded-xl border border-border bg-card hover:bg-muted/40 hover:border-primary/30 transition-all duration-200 group"
               >
-                <FileText className="h-6 w-6" />
-                <span>Add Note</span>
-              </Button>
+                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+                  <FileText className="h-5 w-5 text-accent" />
+                </div>
+                <span className="text-sm font-medium text-foreground">Add Note</span>
+              </button>
             </div>
           </CardContent>
         </Card>

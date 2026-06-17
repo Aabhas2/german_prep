@@ -90,15 +90,15 @@ export const ExamForm = ({ exam, onSave, onCancel }: ExamFormProps) => {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Exam Name *
           </label>
           <input
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.name ? 'border-red-500' : 'border-input'
             }`}
             placeholder="e.g., IELTS, TestAS, APS"
           />
@@ -106,13 +106,13 @@ export const ExamForm = ({ exam, onSave, onCancel }: ExamFormProps) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Status
           </label>
           <select
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value as Exam['status'] })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="To Register">To Register</option>
             <option value="Registered">Registered</option>
@@ -123,7 +123,7 @@ export const ExamForm = ({ exam, onSave, onCancel }: ExamFormProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Fee (EUR)
           </label>
           <input
@@ -132,22 +132,22 @@ export const ExamForm = ({ exam, onSave, onCancel }: ExamFormProps) => {
             step="0.01"
             value={formData.fee}
             onChange={(e) => setFormData({ ...formData, fee: parseFloat(e.target.value) || 0 })}
-            className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.fee ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.fee ? 'border-red-500' : 'border-input'
             }`}
           />
           {errors.fee && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.fee}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Registration Link (Optional)
           </label>
           <input
             type="url"
             value={formData.registrationLink}
             onChange={(e) => setFormData({ ...formData, registrationLink: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="https://example.com"
           />
         </div>
@@ -155,30 +155,30 @@ export const ExamForm = ({ exam, onSave, onCancel }: ExamFormProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Planned Date {formData.status === 'Registered' && '*'}
           </label>
           <input
             type="date"
             value={formData.plannedDate}
             onChange={(e) => setFormData({ ...formData, plannedDate: e.target.value })}
-            className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.plannedDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.plannedDate ? 'border-red-500' : 'border-input'
             }`}
           />
           {errors.plannedDate && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.plannedDate}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Actual Date {formData.status === 'Completed' && '*'}
           </label>
           <input
             type="date"
             value={formData.actualDate}
             onChange={(e) => setFormData({ ...formData, actualDate: e.target.value })}
-            className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.actualDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.actualDate ? 'border-red-500' : 'border-input'
             }`}
           />
           {errors.actualDate && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.actualDate}</p>}
@@ -187,21 +187,21 @@ export const ExamForm = ({ exam, onSave, onCancel }: ExamFormProps) => {
 
       {formData.status === 'Completed' && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Score/Result (Optional)
           </label>
           <input
             type="text"
             value={formData.score}
             onChange={(e) => setFormData({ ...formData, score: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="e.g., 7.5, Passed, 85%"
           />
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground/85 mb-2">
           Preparation Resources (Optional)
         </label>
         {formData.preparationResources.map((resource, index) => (
@@ -210,7 +210,7 @@ export const ExamForm = ({ exam, onSave, onCancel }: ExamFormProps) => {
               type="text"
               value={resource}
               onChange={(e) => handleResourceChange(index, e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter preparation resource"
             />
             {formData.preparationResources.length > 1 && (
@@ -236,7 +236,7 @@ export const ExamForm = ({ exam, onSave, onCancel }: ExamFormProps) => {
         </Button>
       </div>
 
-      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-600">
+      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 ">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>

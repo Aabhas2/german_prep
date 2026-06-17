@@ -81,15 +81,15 @@ export const NoteForm = ({ note, onSave, onCancel }: NoteFormProps) => {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Note Title *
           </label>
           <input
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.title ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.title ? 'border-red-500' : 'border-input'
             }`}
             placeholder="Enter note title"
           />
@@ -97,7 +97,7 @@ export const NoteForm = ({ note, onSave, onCancel }: NoteFormProps) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground/85 mb-2">
             Category *
           </label>
           <div className="relative">
@@ -106,8 +106,8 @@ export const NoteForm = ({ note, onSave, onCancel }: NoteFormProps) => {
               list="categories"
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.category ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+              className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.category ? 'border-red-500' : 'border-input'
               }`}
               placeholder="Enter or select category"
             />
@@ -122,15 +122,15 @@ export const NoteForm = ({ note, onSave, onCancel }: NoteFormProps) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground/85 mb-2">
           Content *
         </label>
         <textarea
           value={formData.content}
           onChange={(e) => setFormData({ ...formData, content: e.target.value })}
           rows={8}
-          className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.content ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+          className={`w-full px-3 py-2 border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            errors.content ? 'border-red-500' : 'border-input'
           }`}
           placeholder="Write your note content here..."
         />
@@ -138,22 +138,22 @@ export const NoteForm = ({ note, onSave, onCancel }: NoteFormProps) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground/85 mb-2">
           Tags (Optional)
         </label>
         <input
           type="text"
           value={formData.tags}
           onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Enter tags separated by commas (e.g., language, german, study-tips)"
         />
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Separate multiple tags with commas. Tags will be converted to lowercase.
         </p>
       </div>
 
-      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-600">
+      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 ">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
