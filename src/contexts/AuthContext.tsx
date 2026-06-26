@@ -1,11 +1,11 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { 
-  User, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  signOut, 
+import {
+  User,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,

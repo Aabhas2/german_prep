@@ -3,8 +3,9 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { ToastProvider } from '@/components/ui/Toast'
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
@@ -23,10 +24,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.variable} style={{ fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif' }} suppressHydrationWarning>
+      <body
+        className={inter.variable}
+        style={{ fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif' }}
+        suppressHydrationWarning
+      >
         <AuthProvider>
           <ThemeProvider>
-            {children}
+            <ToastProvider>
+              {children}
+            </ToastProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>
