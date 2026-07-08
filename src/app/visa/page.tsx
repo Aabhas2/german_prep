@@ -16,6 +16,8 @@ import { dbVisaSteps } from '@/lib/db'
 import { formatDate } from '@/lib/utils'
 import { VisaStep } from '@/types'
 import { VisaStepForm } from '@/components/forms/VisaStepForm'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { CertificateTracker } from '@/components/visa/CertificateTracker'
 import { useIsClient } from '@/hooks/useIsClient'
 import { Loading } from '@/components/ui/Loading'
 
@@ -27,6 +29,9 @@ export default function VisaPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingStep, setEditingStep] = useState<VisaStep | undefined>(undefined)
   const [mounted, setMounted] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [stepToDelete, setStepToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Load data on mount / auth state change
   useEffect(() => {
@@ -67,9 +72,9 @@ export default function VisaPage() {
 
   const getStatusIcon = (status: VisaStep['status']) => {
     switch (status) {
-      case 'Completed': return <CheckCircle className="h-5 w-5 text-green-600" />
-      case 'In Progress': return <Clock className="h-5 w-5 text-blue-600" />
-      case 'Pending': return <AlertTriangle className="h-5 w-5 text-yellow-600" />
+      case 'Completed': return <CheckCircle className="h-5 w-5 text-success" />
+      case 'In Progress': return <Clock className="h-5 w-5 text-info" />
+      case 'Pending': return <AlertTriangle className="h-5 w-5 text-warning" />
     }
   }
 
@@ -95,19 +100,27 @@ export default function VisaPage() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteStep = async (stepId: string) => {
-    if (confirm('Are you sure you want to delete this step?')) {
-      if (user) {
-        try {
-          await dbVisaSteps.delete(user.uid, stepId)
-          setVisaSteps(prev => prev.filter(s => s.id !== stepId))
-        } catch (error) {
-          console.error('Error deleting visa step:', error)
-        }
-      } else {
-        setVisaSteps(prev => prev.filter(s => s.id !== stepId))
+  const handleDeleteStep = (stepId: string) => {
+    setStepToDelete(stepId)
+    setConfirmOpen(true)
+  }
+
+  const confirmDeleteStep = async () => {
+    if (!stepToDelete) return
+    setIsDeleting(true)
+    if (user) {
+      try {
+        await dbVisaSteps.delete(user.uid, stepToDelete)
+        setVisaSteps(prev => prev.filter(s => s.id !== stepToDelete))
+      } catch (error) {
+        console.error('Error deleting visa step:', error)
       }
+    } else {
+      setVisaSteps(prev => prev.filter(s => s.id !== stepToDelete))
     }
+    setIsDeleting(false)
+    setConfirmOpen(false)
+    setStepToDelete(null)
   }
 
   const handleSaveStep = async (step: VisaStep) => {
@@ -329,6 +342,8 @@ export default function VisaPage() {
           </Button>
         </div>
 
+        <CertificateTracker />
+
         {/* Progress Overview */}
         <Card>
           <CardHeader>
@@ -461,7 +476,17 @@ export default function VisaPage() {
             onCancel={handleCancelEdit}
           />
         </Modal>
+
+        <ConfirmDialog
+          isOpen={confirmOpen}
+          onClose={() => { setConfirmOpen(false); setStepToDelete(null) }}
+          onConfirm={confirmDeleteStep}
+          title="Delete Visa Step?"
+          message="This will permanently delete this visa step. This action cannot be undone."
+          confirmLabel="Delete"
+          isLoading={isDeleting}
+        />
       </div>
     </Layout>
   )
-} 
+}
