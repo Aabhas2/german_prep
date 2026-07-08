@@ -13,6 +13,8 @@ import { dbExams } from '@/lib/db'
 import { formatDate } from '@/lib/utils'
 import { Exam } from '@/types'
 import { ExamForm } from '@/components/forms/ExamForm'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { LanguageTracker } from '@/components/exams/LanguageTracker'
 import { useIsClient } from '@/hooks/useIsClient'
 import { Loading } from '@/components/ui/Loading'
 
@@ -23,6 +25,9 @@ export default function ExamsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingExam, setEditingExam] = useState<Exam | undefined>(undefined)
   const [mounted, setMounted] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [examToDelete, setExamToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Load data on mount / auth state change
   useEffect(() => {
@@ -80,19 +85,27 @@ export default function ExamsPage() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteExam = async (examId: string) => {
-    if (confirm('Are you sure you want to delete this exam?')) {
-      if (user) {
-        try {
-          await dbExams.delete(user.uid, examId)
-          setExams(prev => prev.filter(e => e.id !== examId))
-        } catch (error) {
-          console.error('Error deleting exam:', error)
-        }
-      } else {
-        setExams(prev => prev.filter(e => e.id !== examId))
+  const handleDeleteExam = (examId: string) => {
+    setExamToDelete(examId)
+    setConfirmOpen(true)
+  }
+
+  const confirmDeleteExam = async () => {
+    if (!examToDelete) return
+    setIsDeleting(true)
+    if (user) {
+      try {
+        await dbExams.delete(user.uid, examToDelete)
+        setExams(prev => prev.filter(e => e.id !== examToDelete))
+      } catch (error) {
+        console.error('Error deleting exam:', error)
       }
+    } else {
+      setExams(prev => prev.filter(e => e.id !== examToDelete))
     }
+    setIsDeleting(false)
+    setConfirmOpen(false)
+    setExamToDelete(null)
   }
 
   const handleSaveExam = async (exam: Exam) => {
@@ -299,8 +312,10 @@ export default function ExamsPage() {
           </Button>
         </div>
 
+        <LanguageTracker />
+
         {/* Exam Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
@@ -406,7 +421,18 @@ export default function ExamsPage() {
             onCancel={handleCancelEdit}
           />
         </Modal>
+
+        {/* Delete Confirmation */}
+        <ConfirmDialog
+          isOpen={confirmOpen}
+          onClose={() => { setConfirmOpen(false); setExamToDelete(null) }}
+          onConfirm={confirmDeleteExam}
+          title="Delete Exam?"
+          message="This will permanently remove the exam and all its details. This action cannot be undone."
+          confirmLabel="Delete Exam"
+          isLoading={isDeleting}
+        />
       </div>
     </Layout>
   )
-} 
+}
