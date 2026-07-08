@@ -77,17 +77,24 @@ export const dbUniversities = {
     })
   },
   add: async (userId: string, uni: Omit<University, 'id'>): Promise<University> => {
+    // Bug #9 fix: guard against string date arriving from localStorage
+    const safeDeadline = uni.applicationDeadline instanceof Date
+      ? uni.applicationDeadline
+      : new Date(uni.applicationDeadline)
     const docRef = await addDoc(getUniversitiesRef(userId), {
       ...uni,
-      applicationDeadline: uni.applicationDeadline.toISOString()
+      applicationDeadline: safeDeadline.toISOString()
     })
     return { ...uni, id: docRef.id }
   },
   update: async (userId: string, uni: University): Promise<void> => {
+    const safeDeadline = uni.applicationDeadline instanceof Date
+      ? uni.applicationDeadline
+      : new Date(uni.applicationDeadline)
     const docRef = doc(db, 'users', userId, 'universities', uni.id)
     await updateDoc(docRef, {
       ...uni,
-      applicationDeadline: uni.applicationDeadline.toISOString()
+      applicationDeadline: safeDeadline.toISOString()
     })
   },
   delete: async (userId: string, id: string): Promise<void> => {
@@ -251,17 +258,24 @@ export const dbScholarships = {
     })
   },
   add: async (userId: string, scholarship: Omit<Scholarship, 'id'>): Promise<Scholarship> => {
+    // Bug #10 fix: guard against string date arriving from localStorage
+    const safeDeadline = scholarship.deadline instanceof Date
+      ? scholarship.deadline
+      : new Date(scholarship.deadline)
     const docRef = await addDoc(getScholarshipsRef(userId), {
       ...scholarship,
-      deadline: scholarship.deadline.toISOString()
+      deadline: safeDeadline.toISOString()
     })
     return { ...scholarship, id: docRef.id }
   },
   update: async (userId: string, scholarship: Scholarship): Promise<void> => {
+    const safeDeadline = scholarship.deadline instanceof Date
+      ? scholarship.deadline
+      : new Date(scholarship.deadline)
     const docRef = doc(db, 'users', userId, 'scholarships', scholarship.id)
     await updateDoc(docRef, {
       ...scholarship,
-      deadline: scholarship.deadline.toISOString()
+      deadline: safeDeadline.toISOString()
     })
   },
   delete: async (userId: string, id: string): Promise<void> => {

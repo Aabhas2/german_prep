@@ -8,6 +8,12 @@ export interface University {
   status: 'Interested' | 'Applied' | 'Accepted' | 'Rejected'
   website?: string
   notes?: string
+  documents?: {
+    sopStatus: 'Idea' | 'Draft' | 'Final' | 'Submitted'
+    lor1Status: 'Not Requested' | 'Requested' | 'Received'
+    lor2Status: 'Not Requested' | 'Requested' | 'Received'
+    transcriptStatus: 'Not Requested' | 'Requested' | 'Received' | 'Attested'
+  }
 }
 
 export interface Exam {
@@ -113,6 +119,22 @@ export interface Settings {
     targetCountry: string
     targetStartDate: string
   }
+  certificateStatus?: {
+    aps: 'Not Started' | 'Document Collection' | 'Applied' | 'Processing' | 'Received'
+    dmat: 'Not Started' | 'Registered' | 'Passed' | 'Failed' | 'N/A'
+  }
+  languageStatus?: {
+    german: {
+      exam: 'TestDaF' | 'DSH' | 'Goethe' | 'telc' | 'None'
+      currentLevel: 'None' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
+      targetLevel: 'B1' | 'B2' | 'C1' | 'C2'
+    },
+    english: {
+      exam: 'IELTS' | 'TOEFL' | 'None'
+      currentScore: string
+      targetScore: string
+    }
+  }
   currency: CurrencySettings
   dashboard: DashboardSettings
   notifications: {
@@ -146,7 +168,7 @@ export interface Settings {
     compactMode: boolean
     showAnimations: boolean
     fontSize: 'small' | 'medium' | 'large'
-    colorScheme: 'blue' | 'green' | 'purple' | 'red' | 'orange'
+    colorScheme: string  // e.g. 'burgundy' | 'ocean' | 'forest' | 'slate' | 'rose' | 'amber'
     sidebarCollapsed: boolean
   }
   data: {
@@ -155,4 +177,18 @@ export interface Settings {
     exportFormat: 'json' | 'csv'
     syncEnabled: boolean
   }
-} 
+}
+
+export interface HousingApplication {
+  id: string
+  title: string
+  type: 'WG' | 'Dormitory' | 'Studio' | 'Apartment'
+  city: string
+  rent: number
+  currency: string
+  status: 'Draft' | 'Applied' | 'Interview/Viewing' | 'Offered' | 'Rejected' | 'Accepted'
+  moveInDate?: Date
+  website?: string
+  contactInfo?: string
+  notes?: string
+}

@@ -50,24 +50,22 @@ export const formatCurrency = (amount: number, currency: string, showSymbol: boo
     INR: '₹',
     GBP: '£'
   }
-  
-  // Handle edge cases
-  if (!amount || isNaN(amount)) {
+
+  // Bug #11 fix: treat only null/undefined/NaN as empty — 0 is a valid amount
+  if (amount === undefined || amount === null || isNaN(amount)) {
     const symbol = symbols[currency] || currency
-    return showSymbol ? `${symbol}0` : '0'
+    return showSymbol ? `${symbol}0.00` : '0.00'
   }
-  
+
   let formatted: string
-  
+
   try {
     if (currency === 'INR') {
-      // Use Indian number system (lakhs and crores)
       formatted = Math.round(amount).toLocaleString('en-IN', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       })
     } else {
-      // Use Western number system for USD and EUR
       formatted = amount.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -75,46 +73,60 @@ export const formatCurrency = (amount: number, currency: string, showSymbol: boo
     }
   } catch (error) {
     console.error('Error formatting currency:', error)
-    formatted = amount.toString()
+    formatted = amount.toFixed(2)
   }
-  
+
   const symbol = symbols[currency] || currency
   return showSymbol ? `${symbol}${formatted}` : formatted
 }
 
+/**
+ * Bug #2 fix: All exchangeRates are stored as "1 EUR = X currency".
+ * Proper two-hop conversion:
+ *   1. Convert fromCurrency → EUR  (divide by fromCurrency rate)
+ *   2. Convert EUR → toCurrency    (multiply by toCurrency rate)
+ * This handles any currency pair correctly (not just EUR-based ones).
+ */
 export const convertCurrency = (
-  amount: number, 
-  fromCurrency: string, 
+  amount: number,
+  fromCurrency: string,
   toCurrency: string,
   exchangeRates: Record<string, number>
 ): number => {
-  // Validate inputs
-  if (!amount || isNaN(amount)) return 0
+  if (amount === undefined || amount === null || isNaN(amount)) return 0
   if (fromCurrency === toCurrency) return amount
-  
+
   try {
-    // If we have a direct rate, use it
-    const directRate = exchangeRates[toCurrency]
-    if (directRate && directRate > 0) {
-      return amount * directRate
+    const rates = { EUR: 1, ...exchangeRates } as Record<string, number>
+
+    const fromRate = rates[fromCurrency]
+    const toRate   = rates[toCurrency]
+
+    if (!fromRate || fromRate <= 0) {
+      console.warn(`convertCurrency: no rate found for source currency '${fromCurrency}', returning original amount`)
+      return amount
     }
-    
-    // Try reverse conversion
-    const reverseRate = exchangeRates[fromCurrency]
-    if (reverseRate && reverseRate > 0) {
-      return amount / reverseRate
+    if (!toRate || toRate <= 0) {
+      console.warn(`convertCurrency: no rate found for target currency '${toCurrency}', returning original amount`)
+      return amount
     }
-    
-    // If no rate found, return original amount
-    console.warn(`No exchange rate found for ${fromCurrency} to ${toCurrency}`)
-    return amount
+
+    // Step 1: source → EUR
+    const amountInEUR = amount / fromRate
+    // Step 2: EUR → target
+    return amountInEUR * toRate
   } catch (error) {
-    console.error('Error converting currency:', error)
+    console.error('convertCurrency error:', error)
     return amount
   }
 }
 
-export const defaultSettings = {
+// NOTE: defaultSettings has been removed from utils.ts.
+// Import it from '@/contexts/ThemeContext' instead.
+// Keeping this comment to prevent accidental re-addition.
+
+// @deprecated — do not use
+export const _REMOVED_defaultSettings = {
   theme: 'light' as 'light' | 'dark',
   notifications: true,
   personalDetails: {

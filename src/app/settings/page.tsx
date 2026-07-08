@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { countriesConfig } from '@/data/countries'
 import { dbTasks } from '@/lib/db'
 import { updateExchangeRates, formatExchangeRate } from '@/lib/exchangeRates'
@@ -64,6 +65,14 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('profile')
   const [isUpdatingRates, setIsUpdatingRates] = useState(false)
 
+  // Confirm Dialog State
+  const [confirmState, setConfirmState] = useState<{
+    isOpen: boolean
+    type: 'import' | 'clear' | null
+    payload: string | null
+    isLoading: boolean
+  }>({ isOpen: false, type: null, payload: null, isLoading: false })
+
   // Apply color scheme to CSS variables on html element
   const applyColorScheme = useCallback((schemeKey: string) => {
     const scheme = COLOR_SCHEMES.find(s => s.key === schemeKey)
@@ -96,25 +105,8 @@ export default function SettingsPage() {
     set('personalDetails', field, value)
     if (field === 'targetCountry') {
       const config = countriesConfig[value]
-      if (config && confirm(`Import 2026-27 preparation milestones for ${value} into your tasks?`)) {
-        const newTasks = config.stages.map((stage: any, idx: number) => ({
-          title: stage.title,
-          description: `${stage.phase}: ${stage.description}`,
-          category: 'Preparation',
-          priority: 'Medium' as const,
-          status: 'To Do' as const,
-          dueDate: new Date(new Date().getFullYear(), new Date().getMonth() + idx + 1, 1),
-        }))
-        if (user) {
-          try {
-            await Promise.all(newTasks.map((t: any) => dbTasks.add(user.uid, t)))
-            toast.success(`Milestones imported for ${value}!`)
-          } catch {
-            toast.error('Failed to import milestones')
-          }
-        } else {
-          toast.info('Sign in to sync milestones to the cloud')
-        }
+      if (config) {
+        setConfirmState({ isOpen: true, type: 'import', payload: value, isLoading: false })
       }
     }
   }
@@ -155,11 +147,47 @@ export default function SettingsPage() {
   }
 
   const handleClearData = () => {
-    if (confirm('This will permanently delete all local data. Continue?')) {
+    setConfirmState({ isOpen: true, type: 'clear', payload: null, isLoading: false })
+  }
+
+  const handleConfirmAction = async () => {
+    const { type, payload } = confirmState
+    if (!type) return
+
+    setConfirmState(prev => ({ ...prev, isLoading: true }))
+
+    if (type === 'import' && payload) {
+      const config = countriesConfig[payload]
+      if (config) {
+        const newTasks = config.stages.map((stage: any, idx: number) => ({
+          title: stage.title,
+          description: `${stage.phase}: ${stage.description}`,
+          category: 'Preparation',
+          priority: 'Medium' as const,
+          status: 'To Do' as const,
+          dueDate: new Date(new Date().getFullYear(), new Date().getMonth() + idx + 1, 1),
+        }))
+        if (user) {
+          try {
+            await Promise.all(newTasks.map((t: any) => dbTasks.add(user.uid, t)))
+            toast.success(`Milestones imported for ${payload}!`)
+          } catch {
+            toast.error('Failed to import milestones')
+          }
+        } else {
+          const existing = JSON.parse(localStorage.getItem('tasks') || '[]')
+          const withIds = newTasks.map((t: any) => ({ ...t, id: Date.now().toString() + Math.random() }))
+          localStorage.setItem('tasks', JSON.stringify([...existing, ...withIds]))
+          toast.success(`Milestones imported for ${payload}!`)
+        }
+      }
+    } else if (type === 'clear') {
       localStorage.clear()
       toast.success('All local data cleared')
       setTimeout(() => window.location.reload(), 800)
     }
+
+    setConfirmState({ isOpen: false, type: null, payload: null, isLoading: false })
   }
 
   // ─── Tab content renderers ────────────────────────────────────────────────
@@ -565,15 +593,18 @@ export default function SettingsPage() {
     </div>
   )
 
-  const TAB_CONTENT: Record<TabKey, React.ReactNode> = {
-    profile:       renderProfile(),
-    appearance:    renderAppearance(),
-    dashboard:     renderDashboard(),
-    currency:      renderCurrency(),
-    tasks:         renderTasks(),
-    notifications: renderNotifications(),
-    data:          renderData(),
-    about:         renderAbout(),
+  const renderTabContent = () => {
+    const TAB_CONTENT: Record<TabKey, React.ReactNode> = {
+      profile:       renderProfile(),
+      appearance:    renderAppearance(),
+      dashboard:     renderDashboard(),
+      currency:      renderCurrency(),
+      tasks:         renderTasks(),
+      notifications: renderNotifications(),
+      data:          renderData(),
+      about:         renderAbout(),
+    }
+    return TAB_CONTENT[activeTab]
   }
 
   const activeTabMeta = TABS.find(t => t.key === activeTab)!
@@ -617,12 +648,27 @@ export default function SettingsPage() {
                 <CardTitle>{activeTabMeta.label}</CardTitle>
               </CardHeader>
               <CardContent className="pt-5">
-                {TAB_CONTENT[activeTab]}
+                {renderTabContent()}
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        onClose={() => setConfirmState({ isOpen: false, type: null, payload: null, isLoading: false })}
+        onConfirm={handleConfirmAction}
+        title={confirmState.type === 'import' ? 'Import Milestones?' : 'Clear All Data?'}
+        message={
+          confirmState.type === 'import'
+            ? `Import 2026-27 preparation milestones for ${confirmState.payload} into your tasks?`
+            : 'This will permanently delete all local data. Continue?'
+        }
+        confirmLabel={confirmState.type === 'import' ? 'Import' : 'Clear Data'}
+        variant={confirmState.type === 'import' ? 'warning' : 'danger'}
+        isLoading={confirmState.isLoading}
+      />
     </Layout>
   )
 }

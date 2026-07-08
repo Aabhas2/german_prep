@@ -90,7 +90,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
   const { user } = useAuth()
 
-  // Load settings on mount
+  // Load settings on mount — deep merge so nested keys from new features are never lost
   useEffect(() => {
     setMounted(true)
 
@@ -98,14 +98,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const savedSettings = localStorage.getItem('settings')
       if (savedSettings) {
         const parsed = JSON.parse(savedSettings)
-        setSettings({ ...defaultSettings, ...parsed })
+        // Bug #5 fix: deep merge each sub-object so missing nested keys fall back to defaults
+        setSettings(prev => ({
+          ...prev,
+          ...parsed,
+          personalDetails: { ...prev.personalDetails, ...(parsed.personalDetails ?? {}) },
+          currency:        { ...prev.currency,        ...(parsed.currency        ?? {}) },
+          dashboard:       { ...prev.dashboard,       ...(parsed.dashboard       ?? {}) },
+          notifications:   { ...prev.notifications,   ...(parsed.notifications   ?? {}) },
+          tasks:           { ...prev.tasks,           ...(parsed.tasks           ?? {}) },
+          universities:    { ...prev.universities,    ...(parsed.universities    ?? {}) },
+          finance:         { ...prev.finance,         ...(parsed.finance         ?? {}) },
+          appearance:      { ...prev.appearance,      ...(parsed.appearance      ?? {}) },
+          data:            { ...prev.data,            ...(parsed.data            ?? {}) },
+        }))
       }
     } catch (error) {
-      console.error('Error loading settings:', error)
+      console.error('Error loading settings from localStorage:', error)
     }
   }, [])
 
-  // Sync settings from Firebase if user is logged in
+  // Sync settings from Firebase when user logs in
   useEffect(() => {
     if (!mounted || !user) return
 
@@ -113,9 +126,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       try {
         const cloudSettings = await dbSettings.fetch(user.uid)
         if (cloudSettings) {
-          setSettings(cloudSettings)
+          // Bug #6 fix: cloud settings exist — deep merge with defaults and apply
+          setSettings(prev => ({
+            ...prev,
+            ...cloudSettings,
+            personalDetails: { ...prev.personalDetails, ...(cloudSettings.personalDetails ?? {}) },
+            currency:        { ...prev.currency,        ...(cloudSettings.currency        ?? {}) },
+            dashboard:       { ...prev.dashboard,       ...(cloudSettings.dashboard       ?? {}) },
+            notifications:   { ...prev.notifications,   ...(cloudSettings.notifications   ?? {}) },
+            tasks:           { ...prev.tasks,           ...(cloudSettings.tasks           ?? {}) },
+            universities:    { ...prev.universities,    ...(cloudSettings.universities    ?? {}) },
+            finance:         { ...prev.finance,         ...(cloudSettings.finance         ?? {}) },
+            appearance:      { ...prev.appearance,      ...(cloudSettings.appearance      ?? {}) },
+            data:            { ...prev.data,            ...(cloudSettings.data            ?? {}) },
+          }))
         } else {
-          // If no settings exist in cloud, write current settings
+          // Bug #6 fix: no cloud settings yet — write current local settings to cloud (safe first-login)
           await dbSettings.update(user.uid, settings)
         }
       } catch (error) {
@@ -141,13 +167,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [settings, mounted, user])
 
-  // Apply theme to document
+  // Apply dark/light theme to document
   useEffect(() => {
     if (!mounted) return
 
     const applyTheme = () => {
       const root = document.documentElement
-
       if (settings.theme === 'system') {
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
         root.classList.toggle('dark', systemPrefersDark)
@@ -164,6 +189,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       return () => mediaQuery.removeEventListener('change', applyTheme)
     }
   }, [settings.theme, mounted])
+
+  // Bug #16 fix: Apply color scheme CSS variables globally on every load/change
+  // so all pages get the correct palette without waiting for the Settings page to mount.
+  useEffect(() => {
+    if (!mounted) return
+
+    const schemes: Record<string, Record<string, string>> = {
+      burgundy: { '--primary': '0 50% 40%',   '--accent': '15 60% 45%' },
+      ocean:    { '--primary': '210 65% 45%',  '--accent': '185 55% 40%' },
+      forest:   { '--primary': '150 45% 35%',  '--accent': '90 40% 38%' },
+      slate:    { '--primary': '215 25% 45%',  '--accent': '200 30% 42%' },
+      rose:     { '--primary': '340 60% 45%',  '--accent': '310 45% 42%' },
+      amber:    { '--primary': '38 75% 42%',   '--accent': '25 70% 45%' },
+    }
+
+    const scheme = schemes[settings.appearance?.colorScheme]
+    if (scheme) {
+      const root = document.documentElement
+      Object.entries(scheme).forEach(([key, val]) => root.style.setProperty(key, val))
+    }
+  }, [settings.appearance?.colorScheme, mounted])
 
   const updateSettings = (newSettings: Partial<Settings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }))
