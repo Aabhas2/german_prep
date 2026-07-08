@@ -8,11 +8,12 @@ import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { Plus, Calendar, ExternalLink, DollarSign, Award, Edit, Trash2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { mockScholarships } from '@/data/mockData'
+import { mockScholarships, germanScholarshipsDB } from '@/data/mockData'
 import { dbScholarships } from '@/lib/db'
 import { formatDate } from '@/lib/utils'
 import { Scholarship } from '@/types'
 import { ScholarshipForm } from '@/components/forms/ScholarshipForm'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 
 export default function ScholarshipsPage() {
   const { user } = useAuth()
@@ -20,6 +21,10 @@ export default function ScholarshipsPage() {
   const [mounted, setMounted] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingScholarship, setEditingScholarship] = useState<Scholarship | undefined>(undefined)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [scholarshipToDelete, setScholarshipToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [activeTab, setActiveTab] = useState<'my-scholarships' | 'explore'>('my-scholarships')
 
   // Load data on mount / auth state change
   useEffect(() => {
@@ -77,20 +82,28 @@ export default function ScholarshipsPage() {
     setIsModalOpen(true)
   }, [])
 
-  const handleDeleteScholarship = useCallback(async (scholarshipId: string) => {
-    if (confirm('Are you sure you want to delete this scholarship?')) {
-      if (user) {
-        try {
-          await dbScholarships.delete(user.uid, scholarshipId)
-          setScholarships(prev => prev.filter(s => s.id !== scholarshipId))
-        } catch (error) {
-          console.error('Error deleting scholarship:', error)
-        }
-      } else {
-        setScholarships(prev => prev.filter(s => s.id !== scholarshipId))
+  const handleDeleteScholarship = useCallback((scholarshipId: string) => {
+    setScholarshipToDelete(scholarshipId)
+    setConfirmOpen(true)
+  }, [])
+
+  const confirmDeleteScholarship = async () => {
+    if (!scholarshipToDelete) return
+    setIsDeleting(true)
+    if (user) {
+      try {
+        await dbScholarships.delete(user.uid, scholarshipToDelete)
+        setScholarships(prev => prev.filter(s => s.id !== scholarshipToDelete))
+      } catch (error) {
+        console.error('Error deleting scholarship:', error)
       }
+    } else {
+      setScholarships(prev => prev.filter(s => s.id !== scholarshipToDelete))
     }
-  }, [user])
+    setIsDeleting(false)
+    setConfirmOpen(false)
+    setScholarshipToDelete(null)
+  }
 
   const handleSaveScholarship = useCallback(async (scholarship: Scholarship) => {
     if (editingScholarship) {
@@ -129,6 +142,29 @@ export default function ScholarshipsPage() {
   const handleOpenWebsite = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer')
   }
+
+  const handleAddFromExplore = useCallback(async (scholarship: Scholarship) => {
+    const newScholarship: Omit<Scholarship, 'id'> = {
+      ...scholarship,
+      status: 'To Apply'
+    }
+
+    if (user) {
+      try {
+        const added = await dbScholarships.add(user.uid, newScholarship)
+        setScholarships(prev => [...prev, added])
+      } catch (error) {
+        console.error('Error adding scholarship from explore:', error)
+      }
+    } else {
+      const added: Scholarship = {
+        ...newScholarship,
+        id: Date.now().toString()
+      }
+      setScholarships(prev => [...prev, added])
+    }
+    setActiveTab('my-scholarships')
+  }, [user])
 
   const handleApplyNow = useCallback(async (scholarship: Scholarship) => {
     const updated = { ...scholarship, status: 'Applied' as Scholarship['status'] }
@@ -193,24 +229,28 @@ export default function ScholarshipsPage() {
           </div>
         </div>
 
-        <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+        <div className="flex justify-between items-center pt-4 border-t border-border">
           <div className="flex space-x-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleEditScholarship(scholarship)}
-            >
-              <Edit className="h-4 w-4 mr-1" />
-              Edit
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => handleDeleteScholarship(scholarship.id)}
-              className="text-red-600 hover:text-red-700"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {activeTab === 'my-scholarships' && (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleEditScholarship(scholarship)}
+                >
+                  <Edit className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleDeleteScholarship(scholarship.id)}
+                  className="text-danger hover:text-danger/80"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </>
+            )}
           </div>
           <div className="flex space-x-2">
             {scholarship.website && (
@@ -223,9 +263,14 @@ export default function ScholarshipsPage() {
                 Visit
               </Button>
             )}
-            {scholarship.status === 'To Apply' && (
+            {activeTab === 'my-scholarships' && scholarship.status === 'To Apply' && (
               <Button variant="primary" size="sm" onClick={() => handleApplyNow(scholarship)}>
                 Apply Now
+              </Button>
+            )}
+            {activeTab === 'explore' && (
+              <Button variant="primary" size="sm" onClick={() => handleAddFromExplore(scholarship)}>
+                <Plus className="h-4 w-4 mr-1" /> Add
               </Button>
             )}
           </div>
@@ -313,24 +358,54 @@ export default function ScholarshipsPage() {
           </Card>
         </div>
 
-        {/* Scholarships Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {scholarships.map((scholarship) => (
-            <ScholarshipCard key={scholarship.id} scholarship={scholarship} />
-          ))}
+        {/* Tabs */}
+        <div className="flex space-x-1 border-b border-border mb-6">
+          <button
+            onClick={() => setActiveTab('my-scholarships')}
+            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+              activeTab === 'my-scholarships' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            }`}
+          >
+            My Scholarships
+          </button>
+          <button
+            onClick={() => setActiveTab('explore')}
+            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+              activeTab === 'explore' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            }`}
+          >
+            Explore Scholarships
+          </button>
         </div>
 
-        {scholarships.length === 0 && (
-          <div className="text-center py-12">
-            <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Award className="h-8 w-8 text-gray-400" />
+        {/* Scholarships Grid */}
+        {activeTab === 'my-scholarships' ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {scholarships.map((scholarship) => (
+                <ScholarshipCard key={scholarship.id} scholarship={scholarship} />
+              ))}
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No scholarships added yet</h3>
-            <p className="text-gray-600 mb-4">Start by adding scholarship opportunities</p>
-            <Button onClick={handleAddScholarship}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Your First Scholarship
-            </Button>
+
+            {scholarships.length === 0 && (
+              <div className="text-center py-12 fade-in">
+                <div className="mx-auto w-24 h-24 bg-muted/30 rounded-full flex items-center justify-center mb-4">
+                  <Award className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">No scholarships added yet</h3>
+                <p className="text-muted-foreground mb-4">Start by adding scholarship opportunities or check out the Explore tab!</p>
+                <Button onClick={handleAddScholarship}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Scholarship
+                </Button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
+            {germanScholarshipsDB.map((scholarship) => (
+              <ScholarshipCard key={scholarship.id} scholarship={scholarship} />
+            ))}
           </div>
         )}
 
@@ -391,7 +466,17 @@ export default function ScholarshipsPage() {
             onCancel={handleCancelEdit}
           />
         </Modal>
+
+        <ConfirmDialog
+          isOpen={confirmOpen}
+          onClose={() => { setConfirmOpen(false); setScholarshipToDelete(null) }}
+          onConfirm={confirmDeleteScholarship}
+          title="Delete Scholarship?"
+          message="This will permanently delete this scholarship. This action cannot be undone."
+          confirmLabel="Delete"
+          isLoading={isDeleting}
+        />
       </div>
     </Layout>
   )
-} 
+}

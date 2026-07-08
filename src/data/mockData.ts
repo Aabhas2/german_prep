@@ -179,6 +179,61 @@ export const mockVisaSteps: VisaStep[] = [
     description: 'Attend the scheduled visa interview',
     status: 'Pending',
     documents: ['All original documents', 'Copies of documents']
+  },
+  {
+    id: '5',
+    title: 'Travel Health Insurance',
+    description: 'Get travel insurance for the initial days before public health insurance starts',
+    status: 'Pending',
+    documents: ['Travel Insurance Certificate'],
+    notes: 'Required for visa stamping'
+  }
+]
+
+export const germanScholarshipsDB: Scholarship[] = [
+  {
+    id: 'db-daad-1',
+    name: 'DAAD Study Scholarships - Master Studies for All Academic Disciplines',
+    amount: 934,
+    currency: 'EUR',
+    eligibility: 'Excellent academic record, bachelor degree (max 6 years old)',
+    deadline: new Date(new Date().getFullYear(), 10, 15), // roughly Nov 15
+    status: 'To Apply',
+    website: 'https://www2.daad.de/deutschland/stipendium/datenbank/en/21148-scholarship-database/',
+    requirements: ['SOP (Letter of Motivation)', 'LOR from University Professor', 'Language Certificate']
+  },
+  {
+    id: 'db-deutschlandstipendium-1',
+    name: 'Deutschlandstipendium',
+    amount: 300,
+    currency: 'EUR',
+    eligibility: 'Enrolled students at a German university with outstanding academic achievements',
+    deadline: new Date(new Date().getFullYear(), 5, 30), // Varies, but usually Summer
+    status: 'To Apply',
+    website: 'https://www.deutschlandstipendium.de/deutschlandstipendium/de/services/english/the-deutschlandstipendium-making-a-great-idea-happen.html',
+    requirements: ['Enrolled at participating university', 'Transcript of Records', 'CV']
+  },
+  {
+    id: 'db-boell-1',
+    name: 'Heinrich Böll Foundation Scholarships',
+    amount: 934,
+    currency: 'EUR',
+    eligibility: 'All subjects, must have excellent German language skills (B2/C1)',
+    deadline: new Date(new Date().getFullYear(), 2, 1), // March 1
+    status: 'To Apply',
+    website: 'https://www.boell.de/en/scholarships',
+    requirements: ['Proof of German proficiency (B2+)', 'Excellent academic record', 'Social/political engagement']
+  },
+  {
+    id: 'db-ebert-1',
+    name: 'Friedrich Ebert Foundation',
+    amount: 934,
+    currency: 'EUR',
+    eligibility: 'International students studying in Germany with social/political involvement',
+    deadline: new Date(new Date().getFullYear(), 4, 30), // varying deadlines
+    status: 'To Apply',
+    website: 'https://www.fes.de/studienfoerderung/bewerbung',
+    requirements: ['Social/Political engagement', 'German C1 level', 'Reference from university teacher']
   }
 ]
 
