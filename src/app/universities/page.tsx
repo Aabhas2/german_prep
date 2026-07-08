@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { UniversityForm } from '@/components/forms/UniversityForm'
-import { Plus, ExternalLink, MapPin, Calendar, Globe, Edit, Trash2 } from 'lucide-react'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { Plus, ExternalLink, MapPin, Calendar, Globe, Edit, Trash2, FileText, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { mockUniversities } from '@/data/mockData'
 import { dbUniversities } from '@/lib/db'
@@ -20,11 +21,12 @@ export default function UniversitiesPage() {
   const [mounted, setMounted] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingUniversity, setEditingUniversity] = useState<University | undefined>()
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [uniToDelete, setUniToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  // Load data on mount / auth state change
   useEffect(() => {
     setMounted(true)
-    
     const loadUnis = async () => {
       if (user) {
         try {
@@ -36,10 +38,12 @@ export default function UniversitiesPage() {
       } else {
         try {
           const savedUniversities = localStorage.getItem('universities')
-          const parsedUniversities = savedUniversities ? JSON.parse(savedUniversities).map((uni: any) => ({
-            ...uni,
-            applicationDeadline: uni.applicationDeadline ? new Date(uni.applicationDeadline) : new Date()
-          })) : mockUniversities
+          const parsedUniversities = savedUniversities
+            ? JSON.parse(savedUniversities).map((uni: any) => ({
+                ...uni,
+                applicationDeadline: uni.applicationDeadline ? new Date(uni.applicationDeadline) : new Date()
+              }))
+            : mockUniversities
           setUniversities(parsedUniversities)
         } catch (error) {
           console.error('Error loading universities:', error)
@@ -47,11 +51,9 @@ export default function UniversitiesPage() {
         }
       }
     }
-
     loadUnis()
   }, [user])
 
-  // Save universities when they change (local guest mode only)
   useEffect(() => {
     if (mounted && !user) {
       localStorage.setItem('universities', JSON.stringify(universities))
@@ -76,10 +78,7 @@ export default function UniversitiesPage() {
         console.error('Error adding university:', error)
       }
     } else {
-      const newUniversity: University = {
-        ...universityData,
-        id: Date.now().toString()
-      }
+      const newUniversity: University = { ...universityData, id: Date.now().toString() }
       setUniversities(prev => [...prev, newUniversity])
     }
     setIsModalOpen(false)
@@ -92,12 +91,7 @@ export default function UniversitiesPage() {
 
   const handleUpdateUniversity = async (universityData: Omit<University, 'id'>) => {
     if (!editingUniversity) return
-    
-    const updatedUniversity: University = {
-      ...universityData,
-      id: editingUniversity.id
-    }
-
+    const updatedUniversity: University = { ...universityData, id: editingUniversity.id }
     if (user) {
       try {
         await dbUniversities.update(user.uid, updatedUniversity)
@@ -112,19 +106,28 @@ export default function UniversitiesPage() {
     setEditingUniversity(undefined)
   }
 
-  const handleDeleteUniversity = async (id: string) => {
-    if (confirm('Are you sure you want to delete this university?')) {
-      if (user) {
-        try {
-          await dbUniversities.delete(user.uid, id)
-          setUniversities(prev => prev.filter(uni => uni.id !== id))
-        } catch (error) {
-          console.error('Error deleting university:', error)
-        }
-      } else {
-        setUniversities(prev => prev.filter(uni => uni.id !== id))
+  // Bug #13 fix: Replaced confirm() with ConfirmDialog
+  const handleDeleteUniversity = (id: string) => {
+    setUniToDelete(id)
+    setConfirmOpen(true)
+  }
+
+  const confirmDeleteUniversity = async () => {
+    if (!uniToDelete) return
+    setIsDeleting(true)
+    if (user) {
+      try {
+        await dbUniversities.delete(user.uid, uniToDelete)
+        setUniversities(prev => prev.filter(uni => uni.id !== uniToDelete))
+      } catch (error) {
+        console.error('Error deleting university:', error)
       }
+    } else {
+      setUniversities(prev => prev.filter(uni => uni.id !== uniToDelete))
     }
+    setIsDeleting(false)
+    setConfirmOpen(false)
+    setUniToDelete(null)
   }
 
   const handleStatusChange = async (id: string, newStatus: University['status']) => {
@@ -140,21 +143,18 @@ export default function UniversitiesPage() {
   }
 
   const handleVisitWebsite = (website: string) => {
-    window.open(website, '_blank')
+    window.open(website, '_blank', 'noopener,noreferrer')
   }
 
-  // Show nothing during SSR
-  if (!mounted) {
-    return null
-  }
+  if (!mounted) return null
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-6 fade-in">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Universities</h1>
-            <p className="text-muted-foreground">Manage your university applications</p>
+            <p className="text-muted-foreground text-sm">Manage your university applications</p>
           </div>
           <Button onClick={() => setIsModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -201,13 +201,49 @@ export default function UniversitiesPage() {
                   </div>
                 )}
 
+                {/* Documents Tracker */}
+                <div className="pt-2">
+                  <h4 className="font-medium text-foreground mb-2 flex items-center text-sm">
+                    <FileText className="h-4 w-4 mr-1.5 text-primary" /> Documents
+                  </h4>
+                  {university.documents ? (
+                    <div className="space-y-1.5 text-xs">
+                      <div className="flex justify-between items-center bg-muted/30 px-2 py-1.5 rounded">
+                        <span className="text-muted-foreground">SOP</span>
+                        <span className={`font-medium ${university.documents.sopStatus === 'Submitted' ? 'text-success' : 'text-primary'}`}>
+                          {university.documents.sopStatus}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center bg-muted/30 px-2 py-1.5 rounded">
+                        <span className="text-muted-foreground">LORs</span>
+                        <span className={`font-medium ${university.documents.lor1Status === 'Received' && university.documents.lor2Status === 'Received' ? 'text-success' : 'text-warning'}`}>
+                          {university.documents.lor1Status === 'Received' ? '1' : '0'}/2 Received
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center bg-muted/30 px-2 py-1.5 rounded">
+                        <span className="text-muted-foreground">Transcripts</span>
+                        <span className={`font-medium ${university.documents.transcriptStatus === 'Attested' ? 'text-success' : 'text-primary'}`}>
+                          {university.documents.transcriptStatus}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">Documents not tracked yet. Edit to add.</p>
+                  )}
+                </div>
+
                 <div className="flex justify-between items-center pt-4 border-t border-border">
                   <div className="flex space-x-2">
                     <Button variant="outline" size="sm" onClick={() => handleEditUniversity(university)}>
                       <Edit className="h-4 w-4 mr-1" />
                       Edit
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleDeleteUniversity(university.id)} className="text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-900/20">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteUniversity(university.id)}
+                      className="text-danger border-danger/30 hover:bg-danger/10"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -232,8 +268,8 @@ export default function UniversitiesPage() {
 
         {universities.length === 0 && (
           <div className="text-center py-12">
-            <div className="mx-auto w-24 h-24 bg-gray-100  rounded-full flex items-center justify-center mb-4">
-              <Plus className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+            <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+              <Plus className="h-8 w-8 text-muted-foreground" />
             </div>
             <h3 className="text-lg font-medium text-foreground mb-2">No universities added yet</h3>
             <p className="text-muted-foreground mb-4">Start by adding your target universities</p>
@@ -244,26 +280,28 @@ export default function UniversitiesPage() {
           </div>
         )}
 
-        {/* University Modal */}
         <Modal
           isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false)
-            setEditingUniversity(undefined)
-          }}
+          onClose={() => { setIsModalOpen(false); setEditingUniversity(undefined) }}
           title={editingUniversity ? 'Edit University' : 'Add New University'}
-          className="sm:max-w-2xl"
         >
           <UniversityForm
             university={editingUniversity}
             onSubmit={editingUniversity ? handleUpdateUniversity : handleAddUniversity}
-            onCancel={() => {
-              setIsModalOpen(false)
-              setEditingUniversity(undefined)
-            }}
+            onCancel={() => { setIsModalOpen(false); setEditingUniversity(undefined) }}
           />
         </Modal>
+
+        <ConfirmDialog
+          isOpen={confirmOpen}
+          onClose={() => { setConfirmOpen(false); setUniToDelete(null) }}
+          onConfirm={confirmDeleteUniversity}
+          title="Delete University?"
+          message="This will permanently remove this university and all its application details. This action cannot be undone."
+          confirmLabel="Delete University"
+          isLoading={isDeleting}
+        />
       </div>
     </Layout>
   )
-} 
+}

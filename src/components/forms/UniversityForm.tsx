@@ -19,7 +19,13 @@ export function UniversityForm({ university, onSubmit, onCancel }: UniversityFor
       : '',
     status: university?.status || 'Interested' as University['status'],
     website: university?.website || '',
-    notes: university?.notes || ''
+    notes: university?.notes || '',
+    documents: university?.documents || {
+      sopStatus: 'Idea',
+      lor1Status: 'Not Requested',
+      lor2Status: 'Not Requested',
+      transcriptStatus: 'Not Requested'
+    } as NonNullable<University['documents']>
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -61,7 +67,8 @@ export function UniversityForm({ university, onSubmit, onCancel }: UniversityFor
       applicationDeadline: deadline,
       status: formData.status,
       website: formData.website.trim() || undefined,
-      notes: formData.notes.trim() || undefined
+      notes: formData.notes.trim() || undefined,
+      documents: formData.documents
     })
   }
 
@@ -175,7 +182,63 @@ export function UniversityForm({ university, onSubmit, onCancel }: UniversityFor
         />
       </div>
 
-      <div>
+      <div className="pt-4 pb-2 border-t border-border mt-4">
+        <h4 className="text-sm font-semibold text-foreground mb-3">Documents Tracker</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-foreground/85 mb-1">SOP Status</label>
+            <select
+              value={formData.documents.sopStatus}
+              onChange={(e) => setFormData(prev => ({ ...prev, documents: { ...prev.documents, sopStatus: e.target.value as any } }))}
+              className="w-full px-3 py-1.5 text-sm border border-input rounded-md bg-card focus:ring-2 focus:ring-primary"
+            >
+              <option value="Idea">Idea</option>
+              <option value="Draft">Draft</option>
+              <option value="Final">Final</option>
+              <option value="Submitted">Submitted</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-foreground/85 mb-1">Transcript Status</label>
+            <select
+              value={formData.documents.transcriptStatus}
+              onChange={(e) => setFormData(prev => ({ ...prev, documents: { ...prev.documents, transcriptStatus: e.target.value as any } }))}
+              className="w-full px-3 py-1.5 text-sm border border-input rounded-md bg-card focus:ring-2 focus:ring-primary"
+            >
+              <option value="Not Requested">Not Requested</option>
+              <option value="Requested">Requested</option>
+              <option value="Received">Received</option>
+              <option value="Attested">Attested</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-foreground/85 mb-1">LOR 1 Status</label>
+            <select
+              value={formData.documents.lor1Status}
+              onChange={(e) => setFormData(prev => ({ ...prev, documents: { ...prev.documents, lor1Status: e.target.value as any } }))}
+              className="w-full px-3 py-1.5 text-sm border border-input rounded-md bg-card focus:ring-2 focus:ring-primary"
+            >
+              <option value="Not Requested">Not Requested</option>
+              <option value="Requested">Requested</option>
+              <option value="Received">Received</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-foreground/85 mb-1">LOR 2 Status</label>
+            <select
+              value={formData.documents.lor2Status}
+              onChange={(e) => setFormData(prev => ({ ...prev, documents: { ...prev.documents, lor2Status: e.target.value as any } }))}
+              className="w-full px-3 py-1.5 text-sm border border-input rounded-md bg-card focus:ring-2 focus:ring-primary"
+            >
+              <option value="Not Requested">Not Requested</option>
+              <option value="Requested">Requested</option>
+              <option value="Received">Received</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4">
         <label className="block text-sm font-medium text-foreground/85 mb-1">
           Notes
         </label>
