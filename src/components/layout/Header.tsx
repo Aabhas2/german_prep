@@ -17,6 +17,7 @@ const navigation = [
   { name: 'Visa', href: '/visa' },
   { name: 'Tasks', href: '/tasks' },
   { name: 'Notes', href: '/notes' },
+  { name: 'Housing', href: '/housing' },
   { name: 'Settings', href: '/settings' },
 ]
 

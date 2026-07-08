@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { TaskForm } from '@/components/forms/TaskForm'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Plus, Calendar, AlertTriangle, Edit, Trash2 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -22,6 +23,9 @@ export default function TasksPage() {
   const [mounted, setMounted] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | undefined>()
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Load data on mount / auth state change
   useEffect(() => {
@@ -165,20 +169,28 @@ export default function TasksPage() {
     setEditingTask(undefined)
   }, [editingTask, user])
 
-  const handleDeleteTask = useCallback(async (id: string) => {
-    if (confirm('Are you sure you want to delete this task?')) {
-      if (user) {
-        try {
-          await dbTasks.delete(user.uid, id)
-          setTasks(prev => prev.filter(task => task.id !== id))
-        } catch (error) {
-          console.error('Error deleting task:', error)
-        }
-      } else {
-        setTasks(prev => prev.filter(task => task.id !== id))
+  const handleDeleteTask = useCallback((id: string) => {
+    setTaskToDelete(id)
+    setConfirmOpen(true)
+  }, [])
+
+  const confirmDeleteTask = useCallback(async () => {
+    if (!taskToDelete) return
+    setIsDeleting(true)
+    if (user) {
+      try {
+        await dbTasks.delete(user.uid, taskToDelete)
+        setTasks(prev => prev.filter(task => task.id !== taskToDelete))
+      } catch (error) {
+        console.error('Error deleting task:', error)
       }
+    } else {
+      setTasks(prev => prev.filter(task => task.id !== taskToDelete))
     }
-  }, [user])
+    setIsDeleting(false)
+    setConfirmOpen(false)
+    setTaskToDelete(null)
+  }, [user, taskToDelete])
 
   const handleStatusChange = useCallback(async (id: string, newStatus: Task['status']) => {
     setTasks(prev => {
@@ -297,7 +309,7 @@ export default function TasksPage() {
         </div>
 
         {/* Task Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
@@ -384,6 +396,16 @@ export default function TasksPage() {
             }}
           />
         </Modal>
+
+        <ConfirmDialog
+          isOpen={confirmOpen}
+          onClose={() => { setConfirmOpen(false); setTaskToDelete(null) }}
+          onConfirm={confirmDeleteTask}
+          title="Delete Task?"
+          message="This will permanently delete this task. This action cannot be undone."
+          confirmLabel="Delete Task"
+          isLoading={isDeleting}
+        />
       </div>
     </Layout>
   )

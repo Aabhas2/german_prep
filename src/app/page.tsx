@@ -11,6 +11,7 @@ import { SkeletonPage } from '@/components/ui/Skeleton'
 import { TaskForm } from '@/components/forms/TaskForm'
 import { ClientCurrency } from '@/components/ui/ClientCurrency'
 import { DeadlineTimeline } from '@/components/widgets/DeadlineTimeline'
+import { DeadlineAlerts } from '@/components/widgets/DeadlineAlerts'
 import { PrepRoadmap } from '@/components/widgets/PrepRoadmap'
 import { useToast } from '@/components/ui/Toast'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -160,7 +161,7 @@ export default function Dashboard() {
         </div>
 
         {/* ── Stat cards ──────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: 'Universities', value: universities.length, icon: BookOpen, color: 'text-info', bg: 'bg-info/10', sub: `${stats.appInProgress} active` },
             { label: 'Tasks Done', value: `${stats.done}/${stats.total}`, icon: CheckCircle, color: 'text-success', bg: 'bg-success/10', sub: `${stats.inProgress} in progress` },
@@ -185,6 +186,9 @@ export default function Dashboard() {
             </Card>
           ))}
         </div>
+
+        {/* ── Urgent Deadline Alerts ─────────────────────────────── */}
+        <DeadlineAlerts />
 
         {/* ── Main content grid ────────────────────────────────── */}
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">

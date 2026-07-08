@@ -13,6 +13,7 @@ import { dbNotes } from '@/lib/db'
 import { formatDate } from '@/lib/utils'
 import { Note } from '@/types'
 import { NoteForm } from '@/components/forms/NoteForm'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 
 export default function NotesPage() {
   const { user } = useAuth()
@@ -22,6 +23,9 @@ export default function NotesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingNote, setEditingNote] = useState<Note | undefined>(undefined)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Load data on mount / auth change
   useEffect(() => {
@@ -79,19 +83,27 @@ export default function NotesPage() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteNote = async (noteId: string) => {
-    if (confirm('Are you sure you want to delete this note?')) {
-      if (user) {
-        try {
-          await dbNotes.delete(user.uid, noteId)
-          setNotes(prev => prev.filter(n => n.id !== noteId))
-        } catch (error) {
-          console.error('Error deleting note:', error)
-        }
-      } else {
-        setNotes(notes.filter(n => n.id !== noteId))
+  const handleDeleteNote = (noteId: string) => {
+    setNoteToDelete(noteId)
+    setConfirmOpen(true)
+  }
+
+  const confirmDeleteNote = async () => {
+    if (!noteToDelete) return
+    setIsDeleting(true)
+    if (user) {
+      try {
+        await dbNotes.delete(user.uid, noteToDelete)
+        setNotes(prev => prev.filter(n => n.id !== noteToDelete))
+      } catch (error) {
+        console.error('Error deleting note:', error)
       }
+    } else {
+      setNotes(notes.filter(n => n.id !== noteToDelete))
     }
+    setIsDeleting(false)
+    setConfirmOpen(false)
+    setNoteToDelete(null)
   }
 
   const handleSaveNote = async (note: Note) => {
@@ -336,6 +348,16 @@ export default function NotesPage() {
             onCancel={handleCancelEdit}
           />
         </Modal>
+
+        <ConfirmDialog
+          isOpen={confirmOpen}
+          onClose={() => { setConfirmOpen(false); setNoteToDelete(null) }}
+          onConfirm={confirmDeleteNote}
+          title="Delete Note?"
+          message="This will permanently delete this note. This action cannot be undone."
+          confirmLabel="Delete Note"
+          isLoading={isDeleting}
+        />
       </div>
     </Layout>
   )

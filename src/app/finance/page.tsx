@@ -12,6 +12,8 @@ import { ExpenseForm } from '@/components/forms/ExpenseForm'
 import { SavingsForm } from '@/components/forms/SavingsForm'
 import { CurrencyToggle } from '@/components/ui/CurrencyToggle'
 import { ClientCurrency } from '@/components/ui/ClientCurrency'
+import { BlockedAccountTracker } from '@/components/finance/BlockedAccountTracker'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -31,6 +33,14 @@ export default function FinancePage() {
   const [financeItems, setFinanceItems] = useState<FinanceItem[]>([])
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Confirm Dialog State
+  const [confirmState, setConfirmState] = useState<{
+    isOpen: boolean
+    type: 'expense' | 'savings' | null
+    id: string | null
+    isDeleting: boolean
+  }>({ isOpen: false, type: null, id: null, isDeleting: false })
 
   // Currency converter state
   const [convAmount, setConvAmount] = useState('')
@@ -91,20 +101,22 @@ export default function FinancePage() {
   }, [financeItems, savingsGoals, loading, user, isClient])
 
   // ─── Derived stats ────────────────────────────────────────────────────────
-  const convertAmount = useCallback((amt: number) =>
-    convertCurrency(amt, 'EUR', settings.currency.primary, settings.currency.exchangeRates),
+  // Bug #3 fix: convertAmount now takes the item's own currency as source,
+  // so USD/INR expenses are converted correctly instead of being treated as EUR.
+  const convertAmount = useCallback((amt: number, fromCurrency = 'EUR') =>
+    convertCurrency(amt, fromCurrency, settings.currency.primary, settings.currency.exchangeRates),
     [settings.currency])
 
   const { totalEstimated, totalPaid, totalRemaining, categoryTotals } = useMemo(() => {
-    const totalEstimated = financeItems.reduce((s, i) => s + convertAmount(i.estimatedAmount), 0)
-    const totalPaid = financeItems.filter(i => i.paid).reduce((s, i) => s + convertAmount(i.actualAmount ?? i.estimatedAmount), 0)
+    const totalEstimated = financeItems.reduce((s, i) => s + convertAmount(i.estimatedAmount, i.currency), 0)
+    const totalPaid = financeItems.filter(i => i.paid).reduce((s, i) => s + convertAmount(i.actualAmount ?? i.estimatedAmount, i.currency), 0)
     const totalRemaining = totalEstimated - totalPaid
 
     const categoryTotals: Record<string, { estimated: number; paid: number }> = {}
     financeItems.forEach(item => {
       if (!categoryTotals[item.category]) categoryTotals[item.category] = { estimated: 0, paid: 0 }
-      categoryTotals[item.category].estimated += convertAmount(item.estimatedAmount)
-      if (item.paid) categoryTotals[item.category].paid += convertAmount(item.actualAmount ?? item.estimatedAmount)
+      categoryTotals[item.category].estimated += convertAmount(item.estimatedAmount, item.currency)
+      if (item.paid) categoryTotals[item.category].paid += convertAmount(item.actualAmount ?? item.estimatedAmount, item.currency)
     })
     return { totalEstimated, totalPaid, totalRemaining, categoryTotals }
   }, [financeItems, convertAmount])
@@ -169,20 +181,43 @@ export default function FinancePage() {
     }
   }
 
-  const handleDeleteItem = async (id: string) => {
-    if (!confirm('Delete this expense?')) return
-    if (user) {
-      try {
-        await dbFinance.delete(user.uid, id)
+  const handleDeleteItem = (id: string) => {
+    setConfirmState({ isOpen: true, type: 'expense', id, isDeleting: false })
+  }
+
+  const handleConfirmDelete = async () => {
+    const { type, id } = confirmState
+    if (!type || !id) return
+
+    setConfirmState(prev => ({ ...prev, isDeleting: true }))
+
+    if (type === 'expense') {
+      if (user) {
+        try {
+          await dbFinance.delete(user.uid, id)
+          setFinanceItems(prev => prev.filter(i => i.id !== id))
+          toast.success('Expense deleted')
+        } catch {
+          toast.error('Failed to delete')
+        }
+      } else {
         setFinanceItems(prev => prev.filter(i => i.id !== id))
-        toast.success('Expense deleted')
-      } catch {
-        toast.error('Failed to delete')
       }
-    } else {
-      setFinanceItems(prev => prev.filter(i => i.id !== id))
-      toast.success('Expense deleted')
+    } else if (type === 'savings') {
+      if (user) {
+        try {
+          await dbSavingsGoals.delete(user.uid, id)
+          setSavingsGoals(prev => prev.filter(g => g.id !== id))
+          toast.success('Savings goal deleted')
+        } catch {
+          toast.error('Failed to delete')
+        }
+      } else {
+        setSavingsGoals(prev => prev.filter(g => g.id !== id))
+      }
     }
+
+    setConfirmState({ isOpen: false, type: null, id: null, isDeleting: false })
   }
 
   // ─── Savings handlers ─────────────────────────────────────────────────────
@@ -221,20 +256,8 @@ export default function FinancePage() {
     setEditingSavingsGoal(undefined)
   }
 
-  const handleDeleteSavingsGoal = async (id: string) => {
-    if (!confirm('Delete this savings goal?')) return
-    if (user) {
-      try {
-        await dbSavingsGoals.delete(user.uid, id)
-        setSavingsGoals(prev => prev.filter(g => g.id !== id))
-        toast.success('Savings goal deleted')
-      } catch {
-        toast.error('Failed to delete')
-      }
-    } else {
-      setSavingsGoals(prev => prev.filter(g => g.id !== id))
-      toast.success('Savings goal deleted')
-    }
+  const handleDeleteSavingsGoal = (id: string) => {
+    setConfirmState({ isOpen: true, type: 'savings', id, isDeleting: false })
   }
 
   // ─── Category badge colors ────────────────────────────────────────────────
@@ -285,8 +308,13 @@ export default function FinancePage() {
           </div>
         </div>
 
+        <BlockedAccountTracker 
+          savingsGoals={savingsGoals} 
+          targetCountry={settings.personalDetails.targetCountry || 'Germany'} 
+        />
+
         {/* ── Stat cards ─────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: 'Total Estimated', value: totalEstimated, color: 'text-info',    icon: DollarSign,    bg: 'bg-info/10' },
             { label: 'Total Paid',      value: totalPaid,      color: 'text-success', icon: CheckCircle,   bg: 'bg-success/10' },
@@ -574,6 +602,16 @@ export default function FinancePage() {
           onCancel={() => { setIsSavingsModalOpen(false); setEditingSavingsGoal(undefined) }}
         />
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        onClose={() => setConfirmState({ isOpen: false, type: null, id: null, isDeleting: false })}
+        onConfirm={handleConfirmDelete}
+        title={confirmState.type === 'expense' ? 'Delete Expense?' : 'Delete Savings Goal?'}
+        message={`This will permanently delete this ${confirmState.type === 'expense' ? 'expense' : 'savings goal'}. This action cannot be undone.`}
+        confirmLabel="Delete"
+        isLoading={confirmState.isDeleting}
+      />
     </Layout>
   )
 }
