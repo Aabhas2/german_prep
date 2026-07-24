@@ -8,29 +8,33 @@ interface CurrencyToggleProps {
 
 export function CurrencyToggle({ currentCurrency, onCurrencyChange, className }: CurrencyToggleProps) {
   const currencies = [
-    { code: 'USD', symbol: '$', name: 'US Dollar' },
-    { code: 'EUR', symbol: '€', name: 'Euro' },
-    { code: 'INR', symbol: '₹', name: 'Indian Rupee' }
+    { code: 'USD', symbol: '$', name: 'US Dollar (USD)' },
+    { code: 'EUR', symbol: '€', name: 'Euro (EUR)' },
+    { code: 'INR', symbol: '₹', name: 'Indian Rupee (INR)' }
   ] as const
 
   return (
-    <div className={cn("inline-flex rounded-lg border border-gray-200 bg-white p-1", className)}>
-      {currencies.map((currency) => (
-        <button
-          key={currency.code}
-          onClick={() => onCurrencyChange(currency.code)}
-          className={cn(
-            "flex items-center space-x-1 px-3 py-1.5 text-sm font-medium rounded-md transition-all",
-            currentCurrency === currency.code
-              ? "bg-blue-600 text-white shadow-sm"
-              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-          )}
-          title={currency.name}
-        >
-          <span className="text-xs">{currency.symbol}</span>
-          <span>{currency.code}</span>
-        </button>
-      ))}
+    <div className={cn("inline-flex items-center rounded-xl border border-border bg-card/80 backdrop-blur-sm p-1 shadow-sm", className)}>
+      {currencies.map((currency) => {
+        const isSelected = currentCurrency === currency.code
+        return (
+          <button
+            key={currency.code}
+            type="button"
+            onClick={() => onCurrencyChange(currency.code)}
+            className={cn(
+              "flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 focus:outline-none",
+              isSelected
+                ? "bg-primary text-primary-foreground shadow-md ring-1 ring-primary/20 scale-[1.02]"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+            )}
+            title={currency.name}
+          >
+            <span className="font-bold">{currency.symbol}</span>
+            <span>{currency.code}</span>
+          </button>
+        )
+      })}
     </div>
   )
-} 
+}

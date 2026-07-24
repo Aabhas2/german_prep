@@ -241,7 +241,7 @@ export const ScholarshipForm = ({ scholarship, onSave, onCancel }: ScholarshipFo
         {errors.requirements && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.requirements}</p>}
       </div>
 
-      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 ">
+      <div className="flex justify-end space-x-3 pt-6 border-t border-border ">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>

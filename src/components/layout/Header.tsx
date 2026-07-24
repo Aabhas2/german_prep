@@ -3,13 +3,13 @@
 import { useState, useCallback, memo } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Menu, X, GraduationCap, LogIn, LogOut, User, Sun, Moon } from 'lucide-react'
+import { Menu, X, GraduationCap, LogIn, LogOut, User, Sun, Moon, Cloud, HardDrive } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 
 const navigation = [
-  { name: 'Dashboard', href: '/' },
+  { name: 'Dashboard', href: '/dashboard' },
   { name: 'Universities', href: '/universities' },
   { name: 'Scholarships', href: '/scholarships' },
   { name: 'Finance', href: '/finance' },
@@ -39,7 +39,7 @@ const Header = memo(function Header() {
   const handleLogout = async () => {
     try {
       await logout()
-      router.push('/login')
+      router.push('/')
     } catch (error) {
       console.error('Logout error:', error)
     }
@@ -61,19 +61,21 @@ const Header = memo(function Header() {
               <GraduationCap className="h-5 w-5 text-primary" />
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-sm font-bold text-foreground tracking-tight">Prep Hub</span>
+              <span className="text-sm font-bold text-foreground tracking-tight flex items-center gap-1">
+                UniRoute DE 🇩🇪
+              </span>
               <span className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">Study Abroad</span>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden lg:flex items-center space-x-1">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200',
+                  'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200',
                   pathname === item.href
                     ? 'bg-primary/10 text-primary font-semibold'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -86,6 +88,18 @@ const Header = memo(function Header() {
 
           {/* Right side actions */}
           <div className="flex items-center space-x-2">
+
+            {/* Storage Mode Badge */}
+            {user ? (
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 border border-success/20 text-success text-[11px] font-medium">
+                <Cloud className="h-3 w-3" /> Cloud Synced
+              </span>
+            ) : (
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted border border-border text-muted-foreground text-[11px] font-medium">
+                <HardDrive className="h-3 w-3 text-primary" /> Offline Local Mode
+              </span>
+            )}
+
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -99,94 +113,67 @@ const Header = memo(function Header() {
               )}
             </button>
 
-            {/* Auth Section */}
-            <div className="hidden md:flex items-center space-x-2 border-l border-border pl-3">
-              {user ? (
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-muted text-sm font-medium text-foreground">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <User className="h-3 w-3 text-primary" />
-                    </div>
-                    <span className="max-w-[100px] truncate">{user.displayName || user.email}</span>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    title="Sign Out"
-                    className="p-2 rounded-lg text-muted-foreground hover:text-danger hover:bg-danger/10 transition-colors"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </button>
+            {/* Auth Buttons */}
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <div className="hidden sm:flex items-center space-x-1 px-2.5 py-1 bg-muted rounded-lg border border-border">
+                  <User className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-medium text-foreground max-w-[120px] truncate">
+                    {user.displayName || user.email?.split('@')[0]}
+                  </span>
                 </div>
-              ) : (
-                <Link
-                  href="/login"
-                  className="flex items-center space-x-1.5 px-4 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium shadow-sm hover:bg-primary/90 transition-colors"
+                <button
+                  onClick={handleLogout}
+                  title="Sign out"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-danger hover:bg-danger/10 transition-colors"
                 >
-                  <LogIn className="h-3.5 w-3.5" />
-                  <span>Sign In</span>
-                </Link>
-              )}
-            </div>
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm"
+              >
+                <LogIn className="h-3.5 w-3.5" />
+                <span>Sign In</span>
+              </Link>
+            )}
 
             {/* Mobile menu button */}
             <button
-              type="button"
-              className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               onClick={toggleMobileMenu}
+              className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              aria-expanded={mobileMenuOpen}
             >
-              <span className="sr-only">Open main menu</span>
               {mobileMenuOpen ? (
-                <X className="h-5 w-5" aria-hidden="true" />
+                <X className="h-5 w-5" />
               ) : (
-                <Menu className="h-5 w-5" aria-hidden="true" />
+                <Menu className="h-5 w-5" />
               )}
             </button>
+
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden pb-4 slide-down">
-            <div className="pt-2 pb-3 space-y-1 border-t border-border">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    'block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                    pathname === item.href
-                      ? 'bg-primary/10 text-primary font-semibold'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  )}
-                  onClick={closeMobileMenu}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              <div className="pt-2 mt-2 border-t border-border">
-                {user ? (
-                  <div className="flex items-center justify-between px-3 py-2">
-                    <span className="text-sm text-muted-foreground truncate">{user.displayName || user.email}</span>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center space-x-1 text-sm text-danger hover:opacity-80"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Sign out</span>
-                    </button>
-                  </div>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="flex items-center justify-center space-x-1.5 mx-3 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium"
-                    onClick={closeMobileMenu}
-                  >
-                    <LogIn className="h-4 w-4" />
-                    <span>Sign In</span>
-                  </Link>
+          <div className="lg:hidden py-3 border-t border-border space-y-1">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                onClick={closeMobileMenu}
+                className={cn(
+                  'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  pathname === item.href
+                    ? 'bg-primary/10 text-primary font-semibold'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
-              </div>
-            </div>
+              >
+                {item.name}
+              </Link>
+            ))}
           </div>
         )}
       </nav>
@@ -194,4 +181,4 @@ const Header = memo(function Header() {
   )
 })
 
-export { Header }
+export default Header

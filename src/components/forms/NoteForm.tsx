@@ -153,7 +153,7 @@ export const NoteForm = ({ note, onSave, onCancel }: NoteFormProps) => {
         </p>
       </div>
 
-      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 ">
+      <div className="flex justify-end space-x-3 pt-6 border-t border-border ">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>

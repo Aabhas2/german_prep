@@ -221,7 +221,7 @@ export default function TasksPage() {
         )}
         
         <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-          <span className="bg-gray-100  px-2 py-1 rounded">{task.category}</span>
+          <span className="bg-muted  px-2 py-1 rounded">{task.category}</span>
           {task.dueDate && (
             <div className="flex items-center">
               <Calendar className="h-3 w-3 mr-1" />
@@ -313,32 +313,32 @@ export default function TasksPage() {
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Tasks</p>
-                <p className="text-2xl font-bold text-gray-900">{tasks.length}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
+                <p className="text-2xl font-bold text-foreground">{tasks.length}</p>
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">To Do</p>
-                <p className="text-2xl font-bold text-blue-600">{tasksByStatus['To Do'].length}</p>
+                <p className="text-sm font-medium text-muted-foreground">To Do</p>
+                <p className="text-2xl font-bold text-info">{tasksByStatus['To Do'].length}</p>
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">In Progress</p>
-                <p className="text-2xl font-bold text-yellow-600">{tasksByStatus['In Progress'].length}</p>
+                <p className="text-sm font-medium text-muted-foreground">In Progress</p>
+                <p className="text-2xl font-bold text-warning">{tasksByStatus['In Progress'].length}</p>
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-green-600">{tasksByStatus['Completed'].length}</p>
+                <p className="text-sm font-medium text-muted-foreground">Completed</p>
+                <p className="text-2xl font-bold text-success">{tasksByStatus['Completed'].length}</p>
               </div>
             </CardContent>
           </Card>

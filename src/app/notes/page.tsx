@@ -211,7 +211,7 @@ export default function NotesPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your notes...</p>
+            <p className="text-muted-foreground">Loading your notes...</p>
           </div>
         </div>
       </Layout>
@@ -237,13 +237,13 @@ export default function NotesPage() {
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Search notes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
               <div className="flex flex-wrap gap-2">
@@ -267,25 +267,25 @@ export default function NotesPage() {
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Notes</p>
-                <p className="text-2xl font-bold text-gray-900">{notes.length}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Notes</p>
+                <p className="text-2xl font-bold text-foreground">{notes.length}</p>
               </div>
-              <FileText className="h-8 w-8 text-blue-600" />
+              <FileText className="h-8 w-8 text-info" />
             </CardContent>
           </Card>
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Categories</p>
-                <p className="text-2xl font-bold text-gray-900">{Math.max(0, categories.length - 1)}</p>
+                <p className="text-sm font-medium text-muted-foreground">Categories</p>
+                <p className="text-2xl font-bold text-foreground">{Math.max(0, categories.length - 1)}</p>
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Tags</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm font-medium text-muted-foreground">Tags</p>
+                <p className="text-2xl font-bold text-foreground">
                   {Array.from(new Set(notes.flatMap(note => note.tags || []))).length}
                 </p>
               </div>
@@ -294,8 +294,8 @@ export default function NotesPage() {
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">This Month</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm font-medium text-muted-foreground">This Month</p>
+                <p className="text-2xl font-bold text-foreground">
                   {notes.filter(note => {
                     const noteDate = note.createdAt instanceof Date ? note.createdAt : new Date(note.createdAt)
                     const now = new Date()
@@ -316,9 +316,9 @@ export default function NotesPage() {
             ))
           ) : (
             <div className="col-span-full text-center py-12">
-              <FileText className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No notes found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-2 text-sm font-medium text-foreground">No notes found</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
                 {searchTerm || selectedCategory !== 'all' 
                   ? 'Try adjusting your search or filter criteria.'
                   : 'Get started by creating your first note.'

@@ -223,7 +223,7 @@ export default function ExamsPage() {
           {exam.score && (
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Score:</span>
-              <span className="font-medium text-green-600">{exam.score}</span>
+              <span className="font-medium text-success">{exam.score}</span>
             </div>
           )}
         </div>
@@ -319,28 +319,28 @@ export default function ExamsPage() {
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Exams</p>
-                <p className="text-2xl font-bold text-gray-900">{exams.length}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Exams</p>
+                <p className="text-2xl font-bold text-foreground">{exams.length}</p>
               </div>
-              <BookOpen className="h-8 w-8 text-blue-600" />
+              <BookOpen className="h-8 w-8 text-info" />
             </CardContent>
           </Card>
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">To Register</p>
-                <p className="text-2xl font-bold text-yellow-600">
+                <p className="text-sm font-medium text-muted-foreground">To Register</p>
+                <p className="text-2xl font-bold text-warning">
                   {exams.filter(exam => exam.status === 'To Register').length}
                 </p>
               </div>
-              <Calendar className="h-8 w-8 text-yellow-600" />
+              <Calendar className="h-8 w-8 text-warning" />
             </CardContent>
           </Card>
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Registered</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-sm font-medium text-muted-foreground">Registered</p>
+                <p className="text-2xl font-bold text-info">
                   {exams.filter(exam => exam.status === 'Registered').length}
                 </p>
               </div>
@@ -349,12 +349,12 @@ export default function ExamsPage() {
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-sm font-medium text-muted-foreground">Completed</p>
+                <p className="text-2xl font-bold text-success">
                   {exams.filter(exam => exam.status === 'Completed').length}
                 </p>
               </div>
-              <Award className="h-8 w-8 text-green-600" />
+              <Award className="h-8 w-8 text-success" />
             </CardContent>
           </Card>
         </div>
@@ -368,11 +368,11 @@ export default function ExamsPage() {
 
         {exams.length === 0 && (
           <div className="text-center py-12">
-            <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <BookOpen className="h-8 w-8 text-gray-400" />
+            <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+              <BookOpen className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No exams added yet</h3>
-            <p className="text-gray-600 mb-4">Start by adding your required standardized tests</p>
+            <h3 className="text-lg font-medium text-foreground mb-2">No exams added yet</h3>
+            <p className="text-muted-foreground mb-4">Start by adding your required standardized tests</p>
             <Button onClick={handleAddExam}>
               <Plus className="h-4 w-4 mr-2" />
               Add Your First Exam
@@ -388,8 +388,8 @@ export default function ExamsPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">IELTS Tips</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <h4 className="font-medium text-foreground mb-2">IELTS Tips</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li>• Practice all four skills: reading, writing, listening, speaking</li>
                   <li>• Take timed practice tests</li>
                   <li>• Focus on academic vocabulary</li>
@@ -397,8 +397,8 @@ export default function ExamsPage() {
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">TestAS Tips</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <h4 className="font-medium text-foreground mb-2">TestAS Tips</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li>• Understand the test format and structure</li>
                   <li>• Practice logical reasoning problems</li>
                   <li>• Improve German language skills if taking in German</li>

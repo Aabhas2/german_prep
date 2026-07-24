@@ -13,9 +13,9 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Study Abroad Prep Hub',
-  description: 'Your personalized study abroad preparation dashboard — track applications, finances, exams, tasks and more.',
-  keywords: 'study abroad, Germany, university application, visa, prep hub, academic planner',
+  title: 'UniRoute DE — German Study Abroad Planner',
+  description: 'Your personalized German study abroad preparation dashboard — track university applications, Blocked Account (Sperrkonto), APS, visa, exams, and housing.',
+  keywords: 'study abroad, Germany, university application, visa, Sperrkonto, APS, dMAT, academic planner, UniRoute DE',
 }
 
 export default function RootLayout({

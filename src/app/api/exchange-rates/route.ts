@@ -4,8 +4,8 @@ import { NextResponse } from 'next/server'
 const API_URL = 'https://open.er-api.com/v6/latest/EUR'
 
 const FALLBACK_RATES = {
-  USD: 1.09,
-  INR: 90.5,
+  USD: 1.14,
+  INR: 109.88,
   GBP: 0.86,
   EUR: 1,
 }

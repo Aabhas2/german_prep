@@ -14,9 +14,11 @@ import { formatDate } from '@/lib/utils'
 import { Scholarship } from '@/types'
 import { ScholarshipForm } from '@/components/forms/ScholarshipForm'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { useToast } from '@/components/ui/Toast'
 
 export default function ScholarshipsPage() {
   const { user } = useAuth()
+  const toast = useToast()
   const [scholarships, setScholarships] = useState<Scholarship[]>([])
   const [mounted, setMounted] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -183,9 +185,9 @@ export default function ScholarshipsPage() {
     if (scholarship.website) {
       window.open(scholarship.website, '_blank', 'noopener,noreferrer')
     } else {
-      alert('Application submitted! Please check your email for further instructions.')
+      toast.success('Status updated to Applied! Track progress in My Scholarships.')
     }
-  }, [user])
+  }, [user, toast])
 
   const ScholarshipCard = ({ scholarship }: { scholarship: Scholarship }) => (
     <Card className="hover:shadow-md transition-shadow">
@@ -200,29 +202,29 @@ export default function ScholarshipsPage() {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Amount:</span>
-            <span className="font-bold text-green-600">
+            <span className="text-sm text-muted-foreground">Amount:</span>
+            <span className="font-bold text-success">
               {scholarship.currency}{scholarship.amount.toLocaleString()}/month
             </span>
           </div>
           
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Deadline:</span>
+            <span className="text-sm text-muted-foreground">Deadline:</span>
             <span className="font-medium">{formatDate(scholarship.deadline)}</span>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium text-gray-900 mb-1">Eligibility</h4>
-          <p className="text-sm text-gray-600">{scholarship.eligibility}</p>
+          <h4 className="font-medium text-foreground mb-1">Eligibility</h4>
+          <p className="text-sm text-muted-foreground">{scholarship.eligibility}</p>
         </div>
 
         <div>
-          <h4 className="font-medium text-gray-900 mb-2">Requirements</h4>
+          <h4 className="font-medium text-foreground mb-2">Requirements</h4>
           <div className="space-y-1">
             {scholarship.requirements.map((requirement, index) => (
-              <div key={index} className="flex items-center text-sm text-gray-600">
-                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2" />
+              <div key={index} className="flex items-center text-sm text-muted-foreground">
+                <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full mr-2" />
                 {requirement}
               </div>
             ))}
@@ -292,7 +294,7 @@ export default function ScholarshipsPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your scholarships...</p>
+            <p className="text-muted-foreground">Loading your scholarships...</p>
           </div>
         </div>
       </Layout>
@@ -321,25 +323,25 @@ export default function ScholarshipsPage() {
                 <p className="text-sm font-medium text-muted-foreground">Total Scholarships</p>
                 <p className="text-2xl font-bold text-foreground">{scholarships.length}</p>
               </div>
-              <Award className="h-8 w-8 text-blue-600" />
+              <Award className="h-8 w-8 text-info" />
             </CardContent>
           </Card>
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">To Apply</p>
-                <p className="text-2xl font-bold text-yellow-600">
+                <p className="text-sm font-medium text-muted-foreground">To Apply</p>
+                <p className="text-2xl font-bold text-warning">
                   {scholarships.filter(s => s.status === 'To Apply').length}
                 </p>
               </div>
-              <Calendar className="h-8 w-8 text-yellow-600" />
+              <Calendar className="h-8 w-8 text-warning" />
             </CardContent>
           </Card>
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Applied</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-sm font-medium text-muted-foreground">Applied</p>
+                <p className="text-2xl font-bold text-info">
                   {scholarships.filter(s => s.status === 'Applied').length}
                 </p>
               </div>
@@ -348,12 +350,12 @@ export default function ScholarshipsPage() {
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Value</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-sm font-medium text-muted-foreground">Total Value</p>
+                <p className="text-2xl font-bold text-success">
                   €{totalAmount.toLocaleString()}
                 </p>
               </div>
-              <DollarSign className="h-8 w-8 text-green-600" />
+              <DollarSign className="h-8 w-8 text-success" />
             </CardContent>
           </Card>
         </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { University } from '@/types'
+import { AlertCircle } from 'lucide-react'
 
 interface UniversityFormProps {
   university?: University
@@ -33,28 +34,28 @@ export function UniversityForm({ university, onSubmit, onCancel }: UniversityFor
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
+  const [error, setError] = useState<string | null>(null)
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     
-    // Validate required fields
     if (!formData.name.trim() || !formData.location.trim() || !formData.course.trim() || !formData.applicationDeadline) {
-      alert('Please fill in all required fields')
+      setError('Please fill in all required fields (Name, Location, Course, Deadline)')
       return
     }
 
-    // Validate date
     const deadline = new Date(formData.applicationDeadline)
     if (isNaN(deadline.getTime())) {
-      alert('Please enter a valid application deadline')
+      setError('Please enter a valid application deadline')
       return
     }
 
-    // Validate website URL if provided
     if (formData.website && formData.website.trim()) {
       try {
         new URL(formData.website)
       } catch {
-        alert('Please enter a valid website URL')
+        setError('Please enter a valid website URL (including https://)')
         return
       }
     }
@@ -251,6 +252,13 @@ export function UniversityForm({ university, onSubmit, onCancel }: UniversityFor
           placeholder="Additional notes about this university..."
         />
       </div>
+
+      {error && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {error}
+        </div>
+      )}
 
       <div className="flex justify-end space-x-3 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>

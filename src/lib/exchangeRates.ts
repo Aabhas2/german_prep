@@ -10,8 +10,8 @@ export interface ExchangeRateResult {
 
 // Fallback rates used when API is unavailable
 export const FALLBACK_RATES = {
-  USD: 1.09,
-  INR: 90.5,
+  USD: 1.14,
+  INR: 109.88,
   GBP: 0.86,
   EUR: 1,
 }

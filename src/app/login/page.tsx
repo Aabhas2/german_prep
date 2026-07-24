@@ -2,12 +2,33 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
-import { User, Mail, Lock, ShieldAlert, LogIn, UserPlus, GraduationCap, BookOpen, Globe2 } from 'lucide-react'
-import { migrateLocalDataToCloud } from '@/lib/db'
+import { User, Mail, Lock, ShieldAlert, LogIn, UserPlus, GraduationCap, BookOpen, Globe2, ArrowLeft } from 'lucide-react'
+import { migrateLocalDataToCloud } from '@/lib/migration'
 import { defaultSettings } from '@/contexts/ThemeContext'
 import { auth } from '@/lib/firebase'
+
+// Maps Firebase auth error codes to friendly messages
+const getFriendlyError = (err: any): string => {
+  const code: string = err?.code || ''
+  if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential')
+    return 'Incorrect email or password. Please try again.'
+  if (code === 'auth/email-already-in-use')
+    return 'An account with this email already exists. Try logging in instead.'
+  if (code === 'auth/weak-password')
+    return 'Password must be at least 6 characters long.'
+  if (code === 'auth/invalid-email')
+    return 'Please enter a valid email address.'
+  if (code === 'auth/too-many-requests')
+    return 'Too many failed attempts. Please wait a few minutes and try again.'
+  if (code === 'auth/network-request-failed')
+    return 'Network error. Please check your internet connection.'
+  if (code === 'auth/popup-closed-by-user')
+    return 'Google sign-in was cancelled. Please try again.'
+  return err?.message || 'Authentication failed. Please try again.'
+}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -19,60 +40,38 @@ export default function LoginPage() {
   const [name, setName] = useState('')
   const [error, setError] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
 
-  // Redirect if already logged in
+  // Redirect if already logged in — wait until Firebase auth has resolved
   useEffect(() => {
-    if (user && !loading) {
-      router.push('/')
+    if (!loading) {
+      if (user) {
+        // Already authenticated — send straight to dashboard
+        router.replace('/dashboard')
+      } else {
+        // Not logged in — safe to show the login form
+        setAuthChecked(true)
+      }
     }
   }, [user, loading, router])
 
   const triggerMigrationAfterLogin = async () => {
     const currentUser = auth.currentUser
     if (!currentUser) return
-
-    const tasksLocal         = localStorage.getItem('tasks')
-    const universitiesLocal  = localStorage.getItem('universities')
-    const examsLocal         = localStorage.getItem('exams')
-    const financeLocal       = localStorage.getItem('financeItems')
-    const notesLocal         = localStorage.getItem('notes')
-    const scholarshipsLocal  = localStorage.getItem('scholarships')
-    const visaStepsLocal     = localStorage.getItem('visaSteps')
-    const settingsLocal      = localStorage.getItem('settings')
-
-    const hasLocalData = tasksLocal || universitiesLocal || examsLocal || financeLocal || notesLocal || scholarshipsLocal || visaStepsLocal
-
-    if (hasLocalData) {
-      try {
-        const tasks        = tasksLocal       ? JSON.parse(tasksLocal)       : []
-        const universities = universitiesLocal ? JSON.parse(universitiesLocal) : []
-        const exams        = examsLocal        ? JSON.parse(examsLocal)        : []
-        const financeItems = financeLocal      ? JSON.parse(financeLocal)      : []
-        const notes        = notesLocal        ? JSON.parse(notesLocal)        : []
-        const scholarships = scholarshipsLocal  ? JSON.parse(scholarshipsLocal)  : []
-        const visaSteps    = visaStepsLocal    ? JSON.parse(visaStepsLocal)    : []
-
-        let settings = defaultSettings
-        if (settingsLocal) {
-          try { settings = { ...defaultSettings, ...JSON.parse(settingsLocal) } } catch { /* ignore */ }
-        }
-
-        await migrateLocalDataToCloud(currentUser.uid, { tasks, universities, exams, financeItems, notes, scholarships, visaSteps, settings })
-
-        // Clear migrated keys
-        ;['tasks','universities','exams','financeItems','notes','scholarships','visaSteps','settings'].forEach(k => localStorage.removeItem(k))
-      } catch (err) {
-        console.error('Error migrating local data to cloud:', err)
-      }
+    try {
+      await migrateLocalDataToCloud(currentUser.uid)
+    } catch (err) {
+      console.error('Error migrating local data to cloud:', err)
     }
   }
 
-  if (loading) {
+  // Show spinner while Firebase resolves auth state
+  if (loading || !authChecked) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">Checking session…</p>
         </div>
       </div>
     )
@@ -85,14 +84,15 @@ export default function LoginPage() {
     try {
       if (isSignUp) {
         if (!name.trim()) throw new Error('Please enter your name.')
+        if (password.length < 6) throw new Error('Password must be at least 6 characters long.')
         await signUpWithEmail(email, password, name)
       } else {
         await signInWithEmail(email, password)
       }
       await triggerMigrationAfterLogin()
-      router.push('/')
+      router.replace('/dashboard')
     } catch (err: any) {
-      setError(err.message || 'Authentication failed. Please try again.')
+      setError(getFriendlyError(err))
     } finally {
       setAuthLoading(false)
     }
@@ -104,9 +104,9 @@ export default function LoginPage() {
     try {
       await signInWithGoogle()
       await triggerMigrationAfterLogin()
-      router.push('/')
+      router.replace('/dashboard')
     } catch (err: any) {
-      setError(err.message || 'Google Sign-In failed.')
+      setError(getFriendlyError(err))
     } finally {
       setAuthLoading(false)
     }
@@ -128,7 +128,7 @@ export default function LoginPage() {
               <GraduationCap className="w-10 h-10 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">Prep Hub</h1>
+              <h1 className="text-3xl font-bold text-white tracking-tight">UniRoute DE</h1>
               <p className="text-white/70 text-sm mt-1 tracking-wider uppercase">Study Abroad Planner</p>
             </div>
           </div>
@@ -152,22 +152,28 @@ export default function LoginPage() {
             ))}
           </div>
 
-          <p className="text-white/40 text-xs">Designed for students. Built for 2026–27.</p>
+          <p className="text-white/40 text-xs">Designed for international students worldwide.</p>
         </div>
       </div>
 
       {/* Right auth panel */}
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm space-y-8">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-primary" />
+          {/* Mobile logo + back link */}
+          <div className="flex items-center justify-between">
+            <div className="lg:hidden flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <GraduationCap className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-base font-bold text-foreground">UniRoute DE</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Study Abroad</p>
+              </div>
             </div>
-            <div>
-              <p className="text-base font-bold text-foreground">Prep Hub</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Study Abroad</p>
-            </div>
+            <Link href="/" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors ml-auto">
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to home
+            </Link>
           </div>
 
           {/* Heading */}
@@ -237,12 +243,16 @@ export default function LoginPage() {
                 <input
                   type="password"
                   required
+                  minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="input-field pl-10"
                 />
               </div>
+              {isSignUp && (
+                <p className="text-xs text-muted-foreground">Must be at least 6 characters.</p>
+              )}
             </div>
 
             <Button
@@ -293,7 +303,7 @@ export default function LoginPage() {
             Sign in with Google
           </Button>
 
-          {/* Toggle */}
+          {/* Toggle sign-in / sign-up */}
           <p className="text-center text-sm text-muted-foreground">
             {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
             <button
@@ -303,6 +313,16 @@ export default function LoginPage() {
               {isSignUp ? 'Log In' : 'Sign Up'}
             </button>
           </p>
+
+          {/* Guest link */}
+          <div className="text-center">
+            <Link
+              href="/dashboard"
+              className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
+            >
+              Continue without an account (data saved locally)
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -14,6 +14,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { HousingForm } from '@/components/forms/HousingForm'
 import { useIsClient } from '@/hooks/useIsClient'
 import { Loading } from '@/components/ui/Loading'
+import { dbHousing } from '@/lib/db'
 
 const MOCK_HOUSING: HousingApplication[] = [
   {
@@ -51,26 +52,41 @@ export default function HousingPage() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [appToDelete, setAppToDelete] = useState<string | null>(null)
 
-  // In a full implementation, we would hook this up to dbHousing in lib/db.ts
-  // For now we'll use localStorage/mock data to satisfy the tracker requirement.
   useEffect(() => {
     setMounted(true)
-    const saved = localStorage.getItem('housing')
-    if (saved) {
-      setApplications(JSON.parse(saved).map((h: any) => ({
-        ...h,
-        moveInDate: h.moveInDate ? new Date(h.moveInDate) : undefined
-      })))
-    } else {
-      setApplications(MOCK_HOUSING)
+    const loadHousing = async () => {
+      if (user) {
+        try {
+          const cloudHousing = await dbHousing.fetch(user.uid)
+          setApplications(cloudHousing)
+        } catch (error) {
+          console.error('Error fetching housing from cloud:', error)
+        }
+      } else {
+        try {
+          const saved = localStorage.getItem('housing')
+          if (saved) {
+            setApplications(JSON.parse(saved).map((h: any) => ({
+              ...h,
+              moveInDate: h.moveInDate ? new Date(h.moveInDate) : undefined
+            })))
+          } else {
+            setApplications(MOCK_HOUSING)
+          }
+        } catch (error) {
+          console.error('Error loading housing:', error)
+          setApplications(MOCK_HOUSING)
+        }
+      }
     }
+    loadHousing()
   }, [user])
 
   useEffect(() => {
-    if (mounted) {
+    if (mounted && !user) {
       localStorage.setItem('housing', JSON.stringify(applications))
     }
-  }, [applications, mounted])
+  }, [applications, mounted, user])
 
   const getStatusVariant = (status: HousingApplication['status']) => {
     switch (status) {
@@ -83,19 +99,40 @@ export default function HousingPage() {
     }
   }
 
-  const handleAddOrUpdate = (data: Omit<HousingApplication, 'id'>) => {
-    if (editingApp) {
-      setApplications(prev => prev.map(a => a.id === editingApp.id ? { ...data, id: editingApp.id } : a))
+  const handleAddOrUpdate = async (data: Omit<HousingApplication, 'id'>) => {
+    if (user) {
+      try {
+        if (editingApp) {
+          await dbHousing.update(user.uid, { ...data, id: editingApp.id })
+          setApplications(prev => prev.map(a => a.id === editingApp.id ? { ...data, id: editingApp.id } : a))
+        } else {
+          const added = await dbHousing.add(user.uid, data)
+          setApplications(prev => [...prev, added])
+        }
+      } catch (error) {
+        console.error('Error saving housing:', error)
+      }
     } else {
-      const newApp = { ...data, id: Date.now().toString() }
-      setApplications(prev => [...prev, newApp])
+      if (editingApp) {
+        setApplications(prev => prev.map(a => a.id === editingApp.id ? { ...data, id: editingApp.id } : a))
+      } else {
+        const newApp = { ...data, id: Date.now().toString() }
+        setApplications(prev => [...prev, newApp])
+      }
     }
     setIsModalOpen(false)
     setEditingApp(undefined)
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (appToDelete) {
+      if (user) {
+        try {
+          await dbHousing.delete(user.uid, appToDelete)
+        } catch (error) {
+          console.error('Error deleting housing:', error)
+        }
+      }
       setApplications(prev => prev.filter(a => a.id !== appToDelete))
       setAppToDelete(null)
       setConfirmOpen(false)

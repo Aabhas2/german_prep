@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useTheme } from '@/contexts/ThemeContext'
 import { Task } from '@/types'
+import { AlertCircle } from 'lucide-react'
 
 interface TaskFormProps {
   task?: Task
@@ -22,6 +23,7 @@ export function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
       ? new Date(task.dueDate).toISOString().split('T')[0] 
       : ''
   })
+  const [error, setError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -30,19 +32,18 @@ export function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     
-    // Validate required fields
     if (!formData.title.trim()) {
-      alert('Please enter a task title')
+      setError('Please enter a task title')
       return
     }
 
-    // Validate due date if provided
     let dueDate: Date | undefined
     if (formData.dueDate) {
       dueDate = new Date(formData.dueDate)
       if (isNaN(dueDate.getTime())) {
-        alert('Please enter a valid due date')
+        setError('Please enter a valid due date')
         return
       }
     }
@@ -156,6 +157,13 @@ export function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
           />
         </div>
       </div>
+
+      {error && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {error}
+        </div>
+      )}
 
       <div className="flex justify-end space-x-3 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>

@@ -66,13 +66,13 @@ export const LazyImage = ({
         loading="lazy"
       />
       {!isLoaded && !hasError && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-          <div className="text-gray-400 text-sm">Loading...</div>
+        <div className="absolute inset-0 bg-muted animate-pulse flex items-center justify-center">
+          <div className="text-muted-foreground text-sm">Loading...</div>
         </div>
       )}
       {hasError && (
-        <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-          <div className="text-gray-400 text-sm">Failed to load</div>
+        <div className="absolute inset-0 bg-muted flex items-center justify-center">
+          <div className="text-muted-foreground text-sm">Failed to load</div>
         </div>
       )}
     </div>

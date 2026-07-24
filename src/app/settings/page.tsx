@@ -569,8 +569,8 @@ export default function SettingsPage() {
           <Globe2 className="h-7 w-7 text-primary" />
         </div>
         <div>
-          <p className="font-bold text-foreground text-lg">Study Abroad Prep Hub</p>
-          <p className="text-muted-foreground text-sm">Version 1.0.0 · Built for 2026–27</p>
+          <p className="font-bold text-foreground text-lg">UniRoute DE</p>
+          <p className="text-muted-foreground text-sm">Version 1.0.0 · Updated for International Students</p>
         </div>
       </div>
       <div className="space-y-2 text-sm text-muted-foreground">
@@ -662,7 +662,7 @@ export default function SettingsPage() {
         title={confirmState.type === 'import' ? 'Import Milestones?' : 'Clear All Data?'}
         message={
           confirmState.type === 'import'
-            ? `Import 2026-27 preparation milestones for ${confirmState.payload} into your tasks?`
+            ? `Import official preparation milestones for ${confirmState.payload} into your tasks?`
             : 'This will permanently delete all local data. Continue?'
         }
         confirmLabel={confirmState.type === 'import' ? 'Import' : 'Clear Data'}

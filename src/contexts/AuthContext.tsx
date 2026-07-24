@@ -67,7 +67,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       await updateProfile(userCredential.user, { displayName })
-      setUser({ ...userCredential.user, displayName })
+      // onAuthStateChanged will update the user state automatically with the new profile
+      // Do NOT manually setUser here — Firebase User objects cannot be safely spread
     } catch (error) {
       console.error('Error signing up with email:', error)
       throw error

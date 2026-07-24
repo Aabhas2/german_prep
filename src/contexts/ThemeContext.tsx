@@ -21,9 +21,9 @@ export const defaultSettings: Settings = {
     displaySymbol: true,
     exchangeRates: {
       EUR: 1,
-      USD: 1.1,
-      GBP: 0.85,
-      INR: 90
+      USD: 1.14,
+      GBP: 0.86,
+      INR: 109.88
     },
     lastUpdated: new Date().toISOString(),
     autoUpdate: false
@@ -98,19 +98,33 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const savedSettings = localStorage.getItem('settings')
       if (savedSettings) {
         const parsed = JSON.parse(savedSettings)
+
+        // Detect stale exchange rates (INR was previously wrongly set to 90)
+        // If stored INR rate is < 100, it's outdated — force the correct defaults
+        const storedINR = parsed?.currency?.exchangeRates?.INR
+        const ratesAreStale = storedINR !== undefined && storedINR < 100
+        const correctedRates = ratesAreStale
+          ? defaultSettings.currency.exchangeRates
+          : (parsed?.currency?.exchangeRates ?? defaultSettings.currency.exchangeRates)
+
         // Bug #5 fix: deep merge each sub-object so missing nested keys fall back to defaults
         setSettings(prev => ({
           ...prev,
           ...parsed,
           personalDetails: { ...prev.personalDetails, ...(parsed.personalDetails ?? {}) },
-          currency:        { ...prev.currency,        ...(parsed.currency        ?? {}) },
+          currency:        {
+            ...prev.currency,
+            ...(parsed.currency ?? {}),
+            // Always use corrected rates — stale localStorage values must not win
+            exchangeRates: correctedRates,
+          },
           dashboard:       { ...prev.dashboard,       ...(parsed.dashboard       ?? {}) },
           notifications:   { ...prev.notifications,   ...(parsed.notifications   ?? {}) },
-          tasks:           { ...prev.tasks,           ...(parsed.tasks           ?? {}) },
+          tasks:           { ...prev.tasks,            ...(parsed.tasks           ?? {}) },
           universities:    { ...prev.universities,    ...(parsed.universities    ?? {}) },
-          finance:         { ...prev.finance,         ...(parsed.finance         ?? {}) },
-          appearance:      { ...prev.appearance,      ...(parsed.appearance      ?? {}) },
-          data:            { ...prev.data,            ...(parsed.data            ?? {}) },
+          finance:         { ...prev.finance,          ...(parsed.finance         ?? {}) },
+          appearance:      { ...prev.appearance,       ...(parsed.appearance      ?? {}) },
+          data:            { ...prev.data,             ...(parsed.data            ?? {}) },
         }))
       }
     } catch (error) {
@@ -126,12 +140,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       try {
         const cloudSettings = await dbSettings.fetch(user.uid)
         if (cloudSettings) {
+          // Correct stale exchange rates from cloud too (INR was previously set to 90)
+          const cloudINR = cloudSettings?.currency?.exchangeRates?.INR
+          const cloudRatesStale = cloudINR !== undefined && cloudINR < 100
+          const cloudCorrectedRates = cloudRatesStale
+            ? defaultSettings.currency.exchangeRates
+            : (cloudSettings?.currency?.exchangeRates ?? defaultSettings.currency.exchangeRates)
+
           // Bug #6 fix: cloud settings exist — deep merge with defaults and apply
           setSettings(prev => ({
             ...prev,
             ...cloudSettings,
             personalDetails: { ...prev.personalDetails, ...(cloudSettings.personalDetails ?? {}) },
-            currency:        { ...prev.currency,        ...(cloudSettings.currency        ?? {}) },
+            currency:        {
+              ...prev.currency,
+              ...(cloudSettings.currency ?? {}),
+              exchangeRates: cloudCorrectedRates,
+            },
             dashboard:       { ...prev.dashboard,       ...(cloudSettings.dashboard       ?? {}) },
             notifications:   { ...prev.notifications,   ...(cloudSettings.notifications   ?? {}) },
             tasks:           { ...prev.tasks,           ...(cloudSettings.tasks           ?? {}) },
@@ -142,7 +167,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           }))
         } else {
           // Bug #6 fix: no cloud settings yet — write current local settings to cloud (safe first-login)
-          await dbSettings.update(user.uid, settings)
+          await dbSettings.save(user.uid, settings)
         }
       } catch (error) {
         console.error('Error loading settings from cloud:', error)
@@ -159,7 +184,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       try {
         localStorage.setItem('settings', JSON.stringify(settings))
         if (user) {
-          dbSettings.update(user.uid, settings)
+          dbSettings.save(user.uid, settings)
         }
       } catch (error) {
         console.error('Error saving settings:', error)

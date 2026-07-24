@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { UniversityForm } from '@/components/forms/UniversityForm'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { Plus, ExternalLink, MapPin, Calendar, Globe, Edit, Trash2, FileText, CheckCircle2 } from 'lucide-react'
+import { Plus, ExternalLink, MapPin, Calendar, Globe, Edit, Trash2, FileText } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { mockUniversities } from '@/data/mockData'
 import { dbUniversities } from '@/lib/db'
@@ -217,7 +217,7 @@ export default function UniversitiesPage() {
                       <div className="flex justify-between items-center bg-muted/30 px-2 py-1.5 rounded">
                         <span className="text-muted-foreground">LORs</span>
                         <span className={`font-medium ${university.documents.lor1Status === 'Received' && university.documents.lor2Status === 'Received' ? 'text-success' : 'text-warning'}`}>
-                          {university.documents.lor1Status === 'Received' ? '1' : '0'}/2 Received
+                          {(university.documents.lor1Status === 'Received' ? 1 : 0) + (university.documents.lor2Status === 'Received' ? 1 : 0)}/2 Received
                         </span>
                       </div>
                       <div className="flex justify-between items-center bg-muted/30 px-2 py-1.5 rounded">

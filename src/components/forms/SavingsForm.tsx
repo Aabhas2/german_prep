@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { SavingsGoal } from '@/types'
+import { AlertCircle } from 'lucide-react'
 
 interface SavingsFormProps {
   savingsGoal?: SavingsGoal
@@ -25,12 +26,14 @@ export function SavingsForm({ savingsGoal, onSubmit, onCancel }: SavingsFormProp
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
+  const [error, setError] = useState<string | null>(null)
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     
-    // Validate required fields
     if (!formData.title.trim() || !formData.targetAmount || !formData.currentAmount) {
-      alert('Please fill in all required fields')
+      setError('Please fill in all required fields (Title, Target Amount, Current Amount)')
       return
     }
 
@@ -38,26 +41,25 @@ export function SavingsForm({ savingsGoal, onSubmit, onCancel }: SavingsFormProp
     const currentAmount = parseFloat(formData.currentAmount)
 
     if (isNaN(targetAmount) || targetAmount <= 0) {
-      alert('Please enter a valid target amount')
+      setError('Please enter a valid target amount greater than 0')
       return
     }
 
     if (isNaN(currentAmount) || currentAmount < 0) {
-      alert('Please enter a valid current amount')
+      setError('Please enter a valid current amount (must be 0 or more)')
       return
     }
 
     if (currentAmount > targetAmount) {
-      alert('Current amount cannot be greater than target amount')
+      setError('Current amount cannot be greater than target amount')
       return
     }
 
-    // Validate deadline if provided
     let deadline: Date | undefined
     if (formData.deadline) {
       deadline = new Date(formData.deadline)
       if (isNaN(deadline.getTime())) {
-        alert('Please enter a valid deadline')
+        setError('Please enter a valid deadline date')
         return
       }
     }
@@ -169,6 +171,13 @@ export function SavingsForm({ savingsGoal, onSubmit, onCancel }: SavingsFormProp
           placeholder="Describe your savings goal..."
         />
       </div>
+
+      {error && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {error}
+        </div>
+      )}
 
       <div className="flex justify-end space-x-3 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>

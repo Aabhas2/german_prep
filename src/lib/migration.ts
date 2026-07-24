@@ -7,9 +7,10 @@ import {
   dbNotes, 
   dbScholarships, 
   dbVisaSteps,
-  dbSettings
+  dbSettings,
+  dbHousing
 } from './db'
-import { Task, University, Exam, FinanceItem, SavingsGoal, Note, Scholarship, VisaStep, Settings } from '@/types'
+import { Task, University, Exam, FinanceItem, SavingsGoal, Note, Scholarship, VisaStep, Settings, HousingApplication } from '@/types'
 
 export const hasLocalDataToMigrate = (): boolean => {
   if (typeof window === 'undefined') return false
@@ -23,7 +24,8 @@ export const hasLocalDataToMigrate = (): boolean => {
     'notes',
     'scholarships',
     'visaSteps',
-    'appSettings' 
+    'appSettings',
+    'housing'
   ]
   
   for (const key of keys) {
@@ -46,7 +48,7 @@ export const migrateLocalDataToCloud = async (userId: string): Promise<void> => 
     if (localTasksStr) {
       const localTasks: Task[] = JSON.parse(localTasksStr)
       localTasks.forEach(task => {
-        const { id, ...taskData } = task
+        const { id: _id, ...taskData } = task
         promises.push(dbTasks.add(userId, taskData))
       })
     }
@@ -55,7 +57,7 @@ export const migrateLocalDataToCloud = async (userId: string): Promise<void> => 
     if (localUnisStr) {
       const localUnis: University[] = JSON.parse(localUnisStr)
       localUnis.forEach(uni => {
-        const { id, ...uniData } = uni
+        const { id: _id, ...uniData } = uni
         promises.push(dbUniversities.add(userId, uniData))
       })
     }
@@ -64,7 +66,7 @@ export const migrateLocalDataToCloud = async (userId: string): Promise<void> => 
     if (localExamsStr) {
       const localExams: Exam[] = JSON.parse(localExamsStr)
       localExams.forEach(exam => {
-        const { id, ...examData } = exam
+        const { id: _id, ...examData } = exam
         promises.push(dbExams.add(userId, examData))
       })
     }
@@ -73,7 +75,7 @@ export const migrateLocalDataToCloud = async (userId: string): Promise<void> => 
     if (localFinanceStr) {
       const localFinance: FinanceItem[] = JSON.parse(localFinanceStr)
       localFinance.forEach(item => {
-        const { id, ...itemData } = item
+        const { id: _id, ...itemData } = item
         promises.push(dbFinance.add(userId, itemData))
       })
     }
@@ -82,7 +84,7 @@ export const migrateLocalDataToCloud = async (userId: string): Promise<void> => 
     if (localSavingsStr) {
       const localSavings: SavingsGoal[] = JSON.parse(localSavingsStr)
       localSavings.forEach(goal => {
-        const { id, ...goalData } = goal
+        const { id: _id, ...goalData } = goal
         promises.push(dbSavingsGoals.add(userId, goalData))
       })
     }
@@ -91,7 +93,7 @@ export const migrateLocalDataToCloud = async (userId: string): Promise<void> => 
     if (localNotesStr) {
       const localNotes: Note[] = JSON.parse(localNotesStr)
       localNotes.forEach(note => {
-        const { id, ...noteData } = note
+        const { id: _id, ...noteData } = note
         promises.push(dbNotes.add(userId, noteData))
       })
     }
@@ -100,7 +102,7 @@ export const migrateLocalDataToCloud = async (userId: string): Promise<void> => 
     if (localScholarshipsStr) {
       const localScholarships: Scholarship[] = JSON.parse(localScholarshipsStr)
       localScholarships.forEach(scholarship => {
-        const { id, ...scholarshipData } = scholarship
+        const { id: _id, ...scholarshipData } = scholarship
         promises.push(dbScholarships.add(userId, scholarshipData))
       })
     }
@@ -109,8 +111,17 @@ export const migrateLocalDataToCloud = async (userId: string): Promise<void> => 
     if (localVisaStr) {
       const localVisa: VisaStep[] = JSON.parse(localVisaStr)
       localVisa.forEach(step => {
-        const { id, ...stepData } = step
+        const { id: _id, ...stepData } = step
         promises.push(dbVisaSteps.add(userId, stepData))
+      })
+    }
+
+    const localHousingStr = localStorage.getItem('housing')
+    if (localHousingStr) {
+      const localHousing: HousingApplication[] = JSON.parse(localHousingStr)
+      localHousing.forEach(app => {
+        const { id: _id, ...appData } = app
+        promises.push(dbHousing.add(userId, appData))
       })
     }
 
@@ -119,7 +130,7 @@ export const migrateLocalDataToCloud = async (userId: string): Promise<void> => 
       const localSettings: Partial<Settings> = JSON.parse(localSettingsStr)
       const cloudSettings = await dbSettings.fetch(userId)
       if (!cloudSettings || Object.keys(cloudSettings).length === 0) {
-        promises.push(dbSettings.update(userId, localSettings as Settings))
+        promises.push(dbSettings.save(userId, localSettings as Settings))
       }
     }
 
@@ -127,7 +138,7 @@ export const migrateLocalDataToCloud = async (userId: string): Promise<void> => 
 
     const keysToClear = [
       'tasks', 'universities', 'exams', 'financeItems', 
-      'savingsGoals', 'notes', 'scholarships', 'visaSteps', 'appSettings'
+      'savingsGoals', 'notes', 'scholarships', 'visaSteps', 'appSettings', 'housing'
     ]
     keysToClear.forEach(key => localStorage.removeItem(key))
 

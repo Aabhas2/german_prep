@@ -242,7 +242,7 @@ export default function VisaPage() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full font-medium text-sm">
+            <div className="flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full font-medium text-sm">
               {index + 1}
             </div>
             <CardTitle className="text-lg">{step.title}</CardTitle>
@@ -256,11 +256,11 @@ export default function VisaPage() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-gray-600">{step.description}</p>
+        <p className="text-muted-foreground">{step.description}</p>
 
         {step.dueDate && (
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center text-sm text-gray-600">
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center text-sm text-muted-foreground">
               <Calendar className="h-4 w-4 mr-2" />
               Due Date
             </div>
@@ -269,12 +269,12 @@ export default function VisaPage() {
         )}
 
         <div>
-          <h4 className="font-medium text-gray-900 mb-2">Required Documents</h4>
+          <h4 className="font-medium text-foreground mb-2">Required Documents</h4>
           <div className="space-y-2">
             {step.documents.map((document, docIndex) => (
               <div key={docIndex} className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full" />
-                <span className="text-sm text-gray-600">{document}</span>
+                <div className="w-2 h-2 bg-muted-foreground rounded-full" />
+                <span className="text-sm text-muted-foreground">{document}</span>
               </div>
             ))}
           </div>
@@ -282,12 +282,12 @@ export default function VisaPage() {
 
         {step.notes && (
           <div>
-            <h4 className="font-medium text-gray-900 mb-1">Notes</h4>
-            <p className="text-sm text-gray-600">{step.notes}</p>
+            <h4 className="font-medium text-foreground mb-1">Notes</h4>
+            <p className="text-sm text-muted-foreground">{step.notes}</p>
           </div>
         )}
 
-        <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+        <div className="flex justify-between items-center pt-4 border-t border-border">
           <div className="flex space-x-2">
             <Button 
               variant="outline" 
@@ -334,7 +334,7 @@ export default function VisaPage() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Visa Process</h1>
-            <p className="text-gray-600">Track your German student visa application</p>
+            <p className="text-muted-foreground">Track your German student visa application</p>
           </div>
           <Button onClick={handleAddStep}>
             <Plus className="h-4 w-4 mr-2" />
@@ -357,16 +357,16 @@ export default function VisaPage() {
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{totalSteps}</div>
-                <div className="text-sm text-gray-600">Total Steps</div>
+                <div className="text-2xl font-bold text-foreground">{totalSteps}</div>
+                <div className="text-sm text-muted-foreground">Total Steps</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{completedSteps}</div>
-                <div className="text-sm text-gray-600">Completed</div>
+                <div className="text-2xl font-bold text-success">{completedSteps}</div>
+                <div className="text-sm text-muted-foreground">Completed</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-600">{totalSteps - completedSteps}</div>
-                <div className="text-sm text-gray-600">Remaining</div>
+                <div className="text-2xl font-bold text-warning">{totalSteps - completedSteps}</div>
+                <div className="text-sm text-muted-foreground">Remaining</div>
               </div>
             </div>
           </CardContent>
@@ -381,11 +381,11 @@ export default function VisaPage() {
 
         {visaSteps.length === 0 && (
           <div className="text-center py-12">
-            <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <FileText className="h-8 w-8 text-gray-400" />
+            <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+              <FileText className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No visa steps added yet</h3>
-            <p className="text-gray-600 mb-4">Start by adding your visa application steps</p>
+            <h3 className="text-lg font-medium text-foreground mb-2">No visa steps added yet</h3>
+            <p className="text-muted-foreground mb-4">Start by adding your visa application steps</p>
             <Button onClick={handleAddStep}>
               <Plus className="h-4 w-4 mr-2" />
               Add Your First Step
@@ -401,8 +401,8 @@ export default function VisaPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Required Documents</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <h4 className="font-medium text-foreground mb-3">Required Documents</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li>• Valid passport (6+ months validity)</li>
                   <li>• University admission letter</li>
                   <li>• Proof of financial resources (€11,208/year)</li>
@@ -414,8 +414,8 @@ export default function VisaPage() {
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Important Tips</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <h4 className="font-medium text-foreground mb-3">Important Tips</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li>• Apply 3 months before travel date</li>
                   <li>• Book appointment early at German consulate</li>
                   <li>• Prepare for visa interview questions</li>

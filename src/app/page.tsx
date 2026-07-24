@@ -1,299 +1,261 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import React from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Layout } from '@/components/layout/Layout'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { ProgressBar } from '@/components/ui/ProgressBar'
-import { Modal } from '@/components/ui/Modal'
-import { SkeletonPage } from '@/components/ui/Skeleton'
-import { TaskForm } from '@/components/forms/TaskForm'
-import { ClientCurrency } from '@/components/ui/ClientCurrency'
-import { DeadlineTimeline } from '@/components/widgets/DeadlineTimeline'
-import { DeadlineAlerts } from '@/components/widgets/DeadlineAlerts'
-import { PrepRoadmap } from '@/components/widgets/PrepRoadmap'
-import { useToast } from '@/components/ui/Toast'
-import { useTheme } from '@/contexts/ThemeContext'
-import { useAuth } from '@/contexts/AuthContext'
 import {
-  Plus, BookOpen, DollarSign, FileText, CheckCircle,
-  GraduationCap, Map, Target
+  GraduationCap, ShieldCheck, DollarSign,
+  Home, BookOpen, CheckCircle, ArrowRight, Zap, Cloud,
+  Globe, Sparkles, UserCheck, Award
 } from 'lucide-react'
-import { mockTasks, mockUniversities, mockExams, mockFinanceItems } from '@/data/mockData'
-import { dbTasks, dbUniversities, dbExams, dbFinance } from '@/lib/db'
-import { convertCurrency } from '@/lib/utils'
-import { Task, University, Exam, FinanceItem } from '@/types'
+import { Button } from '@/components/ui/Button'
+import { useAuth } from '@/contexts/AuthContext'
 
-export default function Dashboard() {
+export default function LandingPage() {
   const router = useRouter()
-  const { settings } = useTheme()
   const { user } = useAuth()
-  const toast = useToast()
-
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [universities, setUniversities] = useState<University[]>([])
-  const [exams, setExams] = useState<Exam[]>([])
-  const [financeItems, setFinanceItems] = useState<FinanceItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
-  const [editingTask, setEditingTask] = useState<Task | undefined>()
-
-  // ─── Load data ────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true)
-      if (user) {
-        try {
-          const [cloudTasks, cloudUnis, cloudExams, cloudFinance] = await Promise.all([
-            dbTasks.fetch(user.uid),
-            dbUniversities.fetch(user.uid),
-            dbExams.fetch(user.uid),
-            dbFinance.fetch(user.uid),
-          ])
-          setTasks(cloudTasks)
-          setUniversities(cloudUnis)
-          setExams(cloudExams)
-          setFinanceItems(cloudFinance)
-        } catch {
-          toast.error('Failed to load dashboard data')
-        }
-      } else {
-        try {
-          const savedTasks = localStorage.getItem('tasks')
-          const savedUnis = localStorage.getItem('universities')
-          const savedExams = localStorage.getItem('exams')
-          const savedFinance = localStorage.getItem('financeItems')
-          setTasks(savedTasks
-            ? JSON.parse(savedTasks).map((t: any) => ({ ...t, dueDate: t.dueDate ? new Date(t.dueDate) : undefined, createdAt: new Date(t.createdAt ?? Date.now()) }))
-            : mockTasks)
-          setUniversities(savedUnis
-            ? JSON.parse(savedUnis).map((u: any) => ({ ...u, applicationDeadline: new Date(u.applicationDeadline) }))
-            : mockUniversities)
-          setExams(savedExams
-            ? JSON.parse(savedExams).map((e: any) => ({ ...e, plannedDate: e.plannedDate ? new Date(e.plannedDate) : undefined }))
-            : mockExams)
-          setFinanceItems(savedFinance ? JSON.parse(savedFinance) : mockFinanceItems)
-        } catch {
-          setTasks(mockTasks); setUniversities(mockUniversities); setExams(mockExams); setFinanceItems(mockFinanceItems)
-        }
-      }
-      setLoading(false)
-    }
-    loadData()
-  }, [user])
-
-  useEffect(() => {
-    if (!loading && !user) localStorage.setItem('tasks', JSON.stringify(tasks))
-  }, [tasks, loading, user])
-
-  // ─── Derived stats ────────────────────────────────────────────────────────
-  const stats = useMemo(() => {
-    const total = tasks.length
-    const done = tasks.filter(t => t.status === 'Completed').length
-    const inProgress = tasks.filter(t => t.status === 'In Progress').length
-    const convertAmt = (a: number) => convertCurrency(a, 'EUR', settings.currency.primary, settings.currency.exchangeRates)
-    const totalBudget = financeItems.reduce((s, i) => s + convertAmt(i.estimatedAmount), 0)
-    const totalPaid = financeItems.filter(i => i.paid).reduce((s, i) => s + convertAmt(i.actualAmount ?? i.estimatedAmount), 0)
-    const appInProgress = universities.filter(u => u.status === 'Applied' || u.status === 'Accepted').length
-    return { total, done, inProgress, pct: total > 0 ? Math.round((done / total) * 100) : 0, totalBudget, totalPaid, appInProgress }
-  }, [tasks, financeItems, universities, settings.currency])
-
-  // ─── Task handlers ────────────────────────────────────────────────────────
-  const handleAddTask = useCallback(async (data: Omit<Task, 'id' | 'createdAt'>) => {
-    if (user) {
-      try {
-        const added = await dbTasks.add(user.uid, data)
-        setTasks(prev => [...prev, added])
-        toast.success('Task added!')
-      } catch { toast.error('Failed to add task') }
-    } else {
-      setTasks(prev => [...prev, { ...data, id: Date.now().toString(), createdAt: new Date() }])
-      toast.success('Task added')
-    }
-    setIsTaskModalOpen(false)
-  }, [user, toast])
-
-  const handleUpdateTask = useCallback(async (data: Omit<Task, 'id' | 'createdAt'>) => {
-    if (!editingTask) return
-    const updated: Task = { ...data, id: editingTask.id, createdAt: editingTask.createdAt }
-    if (user) {
-      try {
-        await dbTasks.update(user.uid, updated)
-        setTasks(prev => prev.map(t => t.id === editingTask.id ? updated : t))
-        toast.success('Task updated')
-      } catch { toast.error('Failed to update task') }
-    } else {
-      setTasks(prev => prev.map(t => t.id === editingTask.id ? updated : t))
-      toast.success('Task updated')
-    }
-    setIsTaskModalOpen(false)
-    setEditingTask(undefined)
-  }, [editingTask, user, toast])
-
-  if (loading) return <Layout><SkeletonPage /></Layout>
-
-  const country = settings.personalDetails.targetCountry || 'Germany'
 
   return (
-    <Layout>
-      <div className="space-y-6 fade-in">
-
-        {/* ── Hero banner ─────────────────────────────────────── */}
-        <div className="relative overflow-hidden rounded-2xl border border-primary/20 p-7"
-          style={{ background: 'linear-gradient(135deg, hsl(var(--primary)/0.10), hsl(var(--accent)/0.08))' }}>
-          <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          <div className="relative">
-            <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-1">Study Abroad Prep Hub</p>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1.5">
-              Welcome{settings.personalDetails.name ? `, ${settings.personalDetails.name.split(' ')[0]}` : ''}! 👋
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              {country} preparation · {stats.pct}% complete · {stats.done} of {stats.total} tasks done
-            </p>
-            <div className="mt-4 max-w-sm">
-              <ProgressBar value={stats.pct} showPercentage={false} />
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary/20">
+      
+      {/* ── Top Navigation Bar ────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border/60 transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push('/')}>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white shadow-md shadow-primary/20">
+              <span className="text-xl select-none">🇩🇪</span>
+            </div>
+            <div>
+              <span className="font-bold text-lg tracking-tight text-foreground flex items-center gap-1.5">
+                UniRoute DE
+                <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                  Free
+                </span>
+              </span>
+              <p className="text-[11px] text-muted-foreground hidden sm:block">Study Abroad Planning Suite</p>
             </div>
           </div>
-          <div className="absolute bottom-4 right-6 text-4xl pointer-events-none opacity-30 select-none">
-            {country === 'Germany' ? '🇩🇪' : country === 'Canada' ? '🇨🇦' : country === 'Netherlands' ? '🇳🇱' : '🌍'}
+
+          <div className="flex items-center gap-3">
+            {user ? (
+              <Button onClick={() => router.push('/dashboard')} variant="primary" className="shadow-md shadow-primary/20">
+                Go to Dashboard <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Button>
+            ) : (
+              <>
+                <Button onClick={() => router.push('/login')} variant="ghost" className="text-sm font-medium">
+                  Cloud Sign In
+                </Button>
+                <Button onClick={() => router.push('/dashboard')} variant="primary" className="shadow-md shadow-primary/20">
+                  Launch App (No Signup) <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
+      </header>
 
-        {/* ── Stat cards ──────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ── Hero Section ─────────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6">
+          
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-semibold tracking-wide uppercase shadow-sm">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Updated for Academic Admissions · APS & dMAT Ready</span>
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.15]">
+            Master Your German Study Abroad Journey <br className="hidden sm:inline" />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary">
+              100% Free & No Sign-up Required
+            </span>
+          </h1>
+
+          <p className="max-w-2xl mx-auto text-base sm:text-lg text-muted-foreground leading-relaxed">
+            The all-in-one suite for international students heading to Germany. Track your **Universities, SOPs, LORs, Sperrkonto (Blocked Account), APS & dMAT milestones, WG Housing & DAAD Scholarships** directly in your browser.
+          </p>
+
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button
+              onClick={() => router.push('/dashboard')}
+              size="lg"
+              className="w-full sm:w-auto text-base px-8 py-6 rounded-xl shadow-lg shadow-primary/25 bg-gradient-to-r from-primary to-accent hover:opacity-95 text-white font-semibold transition-all hover:scale-[1.02]"
+            >
+              <Zap className="mr-2 h-5 w-5 fill-current" />
+              Launch Workspace (No Account Needed)
+            </Button>
+
+            <Button
+              onClick={() => router.push('/login')}
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto text-base px-6 py-6 rounded-xl border-border hover:bg-muted/50 font-medium"
+            >
+              <Cloud className="mr-2 h-5 w-5 text-primary" />
+              Sign In to Sync Across Devices
+            </Button>
+          </div>
+
+          {/* Trust points */}
+          <div className="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs font-medium text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle className="h-4 w-4 text-success" /> Works 100% Offline
+            </span>
+            <span className="flex items-center gap-1.5">
+              <UserCheck className="h-4 w-4 text-success" /> No Credit Card or Account Mandatory
+            </span>
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4 text-success" /> Your Data Stays Private in Browser
+            </span>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── Feature Showcase Grid ───────────────────────────────────────── */}
+      <section className="py-16 bg-muted/30 border-y border-border/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Everything You Need for German Higher Education
+            </h2>
+            <p className="text-muted-foreground text-sm sm:text-base">
+              Built specifically around German admission regulations, uni-assist workflows, and consulate visa requirements.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                icon: GraduationCap,
+                color: 'text-info',
+                bg: 'bg-info/10',
+                title: 'University & SOP Tracker',
+                desc: 'Track Uni-Assist applications, deadlines, SOP progress (Draft to Final), Transcript attestations & LOR requests.'
+              },
+              {
+                icon: DollarSign,
+                color: 'text-accent',
+                bg: 'bg-accent/10',
+                title: 'Sperrkonto & Finance Calculator',
+                desc: 'Calculate your Blocked Account requirement (€11,904/year), monthly living budget, and multi-currency conversions (EUR/INR/USD).'
+              },
+              {
+                icon: ShieldCheck,
+                color: 'text-primary',
+                bg: 'bg-primary/10',
+                title: 'APS & dMAT Certificate Milestone',
+                desc: 'Track APS India verification steps, document courier submission, and dMAT entrance test preparations.'
+              },
+              {
+                icon: Home,
+                color: 'text-warning',
+                bg: 'bg-warning/10',
+                title: 'German Housing & WG Manager',
+                desc: 'Organize applications for WG-Gesucht, Studentenwerk dormitories, and private apartments across Munich, Berlin, etc.'
+              },
+              {
+                icon: BookOpen,
+                color: 'text-success',
+                bg: 'bg-success/10',
+                title: 'Language Proficiency Grid',
+                desc: 'Monitor your CEFR German level progress (A1 to C1) for Goethe-Zertifikat/TestDaF and English IELTS/TOEFL scores.'
+              },
+              {
+                icon: Award,
+                color: 'text-purple-500',
+                bg: 'bg-purple-500/10',
+                title: 'DAAD Scholarship Database',
+                desc: 'Explore pre-populated verified scholarships (DAAD, Deutschlandstipendium, Heinrich Böll) and save them directly to your tracker.'
+              }
+            ].map(({ icon: Icon, color, bg, title, desc }) => (
+              <div
+                key={title}
+                className="p-6 rounded-2xl border border-border bg-card hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 flex flex-col justify-between"
+              >
+                <div className="space-y-4">
+                  <div className={`w-12 h-12 rounded-xl ${bg} flex items-center justify-center`}>
+                    <Icon className={`h-6 w-6 ${color}`} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ & German Facts ───────────────────────────────────────────── */}
+      <section className="py-16 max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-2">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-muted-foreground text-sm">Clear answers for international applicants</p>
+        </div>
+
+        <div className="space-y-4">
           {[
-            { label: 'Universities', value: universities.length, icon: BookOpen, color: 'text-info', bg: 'bg-info/10', sub: `${stats.appInProgress} active` },
-            { label: 'Tasks Done', value: `${stats.done}/${stats.total}`, icon: CheckCircle, color: 'text-success', bg: 'bg-success/10', sub: `${stats.inProgress} in progress` },
-            { label: 'Exams', value: exams.length, icon: FileText, color: 'text-primary', bg: 'bg-primary/10', sub: `${exams.filter(e=>e.status==='Completed').length} completed` },
-            { label: 'Budget Paid', value: null, icon: DollarSign, color: 'text-accent', bg: 'bg-accent/10', sub: `of budget`, isCurrency: true, amount: stats.totalPaid },
-          ].map(({ label, value, icon: Icon, color, bg, sub, isCurrency, amount }) => (
-            <Card key={label}>
-              <CardContent className="flex items-center justify-between p-5">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
-                  <p className={`text-xl font-bold mt-1 ${color}`}>
-                    {isCurrency
-                      ? <ClientCurrency amount={amount!} currency={settings.currency.primary} showSymbol={settings.currency.displaySymbol} />
-                      : value}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>
-                </div>
-                <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-                  <Icon className={`h-5 w-5 ${color}`} />
-                </div>
-              </CardContent>
-            </Card>
+            {
+              q: 'Do I really need to sign up to use UniRoute DE?',
+              a: 'No! You can use 100% of the features instantly without an account. All your data is saved safely in your local browser storage. Signing up with email is completely optional and only needed if you want cloud sync across your phone and laptop.'
+            },
+            {
+              q: 'What is the required Blocked Account (Sperrkonto) amount for Germany?',
+              a: 'The current official German visa standard for international students is €11,904 for 1 year (€992 per month). Our Finance tab includes a real-time Sperrkonto tracker and currency converter.'
+            },
+            {
+              q: 'What are the APS and dMAT requirements?',
+              a: 'Students applying from countries like India require an APS Certificate (Academic Evaluation Centre) to verify their academic degree authenticity before applying for a German visa. The dMAT exam may be required by specific tech programs.'
+            }
+          ].map(({ q, a }) => (
+            <div key={q} className="p-5 rounded-xl border border-border bg-card">
+              <h3 className="text-base font-semibold text-foreground mb-1.5 flex items-center gap-2">
+                <Globe className="h-4 w-4 text-primary shrink-0" />
+                {q}
+              </h3>
+              <p className="text-sm text-muted-foreground pl-6 leading-relaxed">{a}</p>
+            </div>
           ))}
         </div>
+      </section>
 
-        {/* ── Urgent Deadline Alerts ─────────────────────────────── */}
-        <DeadlineAlerts />
-
-        {/* ── Main content grid ────────────────────────────────── */}
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-
-          {/* Prep Roadmap — wider */}
-          <Card className="xl:col-span-2">
-            <CardHeader className="flex flex-row items-center gap-2">
-              <Map className="h-4 w-4 text-primary" />
-              <CardTitle>Preparation Roadmap</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PrepRoadmap tasks={tasks} />
-            </CardContent>
-          </Card>
-
-          {/* Deadline Timeline */}
-          <Card className="xl:col-span-3">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Upcoming Deadlines</CardTitle>
-              <span className="text-xs text-muted-foreground">Next 8</span>
-            </CardHeader>
-            <CardContent>
-              <DeadlineTimeline
-                tasks={tasks}
-                universities={universities}
-                exams={exams}
-                visaSteps={[]}
-                scholarships={[]}
-                limit={8}
-              />
-            </CardContent>
-          </Card>
+      {/* ── Bottom CTA ──────────────────────────────────────────────────── */}
+      <section className="py-12 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-t border-border/60">
+        <div className="max-w-4xl mx-auto px-4 text-center space-y-5">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+            Ready to Begin Your German Study Journey?
+          </h2>
+          <p className="text-muted-foreground text-sm max-w-xl mx-auto">
+            Start organizing your deadlines, universities, and documents right now. Free forever, no sign up required.
+          </p>
+          <div className="pt-2">
+            <Button
+              onClick={() => router.push('/dashboard')}
+              size="lg"
+              className="text-base px-8 py-6 rounded-xl bg-primary text-primary-foreground font-semibold shadow-lg shadow-primary/20 hover:opacity-95"
+            >
+              Open Workspace Now <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
         </div>
+      </section>
 
-        {/* ── Quick Actions ─────────────────────────────────────── */}
-        {settings.dashboard.showQuickActions && (
-          <Card>
-            <CardHeader><CardTitle>Quick Actions</CardTitle></CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: 'Add University', icon: GraduationCap, color: 'text-info', bg: 'bg-info/10', hbg: 'group-hover:bg-info/20', href: '/universities' },
-                  { label: 'Add Exam', icon: FileText, color: 'text-primary', bg: 'bg-primary/10', hbg: 'group-hover:bg-primary/20', href: '/exams' },
-                  { label: 'Add Task', icon: Plus, color: 'text-success', bg: 'bg-success/10', hbg: 'group-hover:bg-success/20', href: null },
-                  { label: 'Finance', icon: Target, color: 'text-accent', bg: 'bg-accent/10', hbg: 'group-hover:bg-accent/20', href: '/finance' },
-                ].map(({ label, icon: Icon, color, bg, hbg, href }) => (
-                  <button
-                    key={label}
-                    onClick={() => href ? router.push(href) : setIsTaskModalOpen(true)}
-                    className="flex flex-col items-center justify-center gap-2 p-5 rounded-xl border border-border bg-card hover:bg-muted/40 hover:border-primary/30 transition-all duration-200 group"
-                  >
-                    <div className={`w-10 h-10 rounded-xl ${bg} ${hbg} flex items-center justify-center transition-colors`}>
-                      <Icon className={`h-5 w-5 ${color}`} />
-                    </div>
-                    <span className="text-sm font-medium text-foreground">{label}</span>
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+      {/* ── Footer ──────────────────────────────────────────────────────── */}
+      <footer className="mt-auto py-8 border-t border-border/60 bg-background text-xs text-muted-foreground">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p>© {new Date().getFullYear()} UniRoute DE. Made for international students worldwide. 🇩🇪</p>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="hover:text-foreground transition-colors">Dashboard</Link>
+            <Link href="/universities" className="hover:text-foreground transition-colors">Universities</Link>
+            <Link href="/visa" className="hover:text-foreground transition-colors">Visa & APS</Link>
+            <Link href="/login" className="hover:text-foreground transition-colors">Sign In</Link>
+          </div>
+        </div>
+      </footer>
 
-        {/* ── Recent Tasks ──────────────────────────────────────── */}
-        {settings.dashboard.showRecentTasks && tasks.filter(t => t.status !== 'Completed').length > 0 && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Active Tasks</CardTitle>
-              <Button size="sm" variant="ghost" onClick={() => router.push('/tasks')}>View all</Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {tasks
-                  .filter(t => t.status !== 'Completed')
-                  .slice(0, settings.dashboard.tasksToShow ?? 5)
-                  .map(task => (
-                    <div key={task.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-2 h-2 rounded-full shrink-0 ${task.priority === 'High' ? 'bg-danger' : task.priority === 'Medium' ? 'bg-warning' : 'bg-muted-foreground'}`} />
-                        <p className="text-sm font-medium text-foreground truncate">{task.title}</p>
-                      </div>
-                      <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ml-2 ${task.status === 'In Progress' ? 'bg-info/15 text-info' : 'bg-muted text-muted-foreground'}`}>
-                        {task.status}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-      </div>
-
-      {/* Task Modal */}
-      <Modal
-        isOpen={isTaskModalOpen}
-        onClose={() => { setIsTaskModalOpen(false); setEditingTask(undefined) }}
-        title={editingTask ? 'Edit Task' : 'Add Task'}
-        size="md"
-      >
-        <TaskForm
-          task={editingTask}
-          onSubmit={editingTask ? handleUpdateTask : handleAddTask}
-          onCancel={() => { setIsTaskModalOpen(false); setEditingTask(undefined) }}
-        />
-      </Modal>
-    </Layout>
+    </div>
   )
 }

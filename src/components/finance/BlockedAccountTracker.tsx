@@ -1,5 +1,3 @@
-'use client'
-
 import { useMemo } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card'
 import { ProgressBar } from '../ui/ProgressBar'
@@ -7,6 +5,8 @@ import { ClientCurrency } from '../ui/ClientCurrency'
 import { countriesConfig } from '@/data/countries'
 import { SavingsGoal } from '@/types'
 import { ShieldCheck, AlertCircle } from 'lucide-react'
+import { useTheme } from '@/contexts/ThemeContext'
+import { convertCurrency } from '@/lib/utils'
 
 interface BlockedAccountTrackerProps {
   savingsGoals: SavingsGoal[]
@@ -14,6 +14,9 @@ interface BlockedAccountTrackerProps {
 }
 
 export function BlockedAccountTracker({ savingsGoals, targetCountry }: BlockedAccountTrackerProps) {
+  const { settings } = useTheme()
+  const primaryCurrency = settings.currency.primary || 'EUR'
+  const rates = settings.currency.exchangeRates || { EUR: 1, USD: 1.14, INR: 109.88 }
   const config = countriesConfig[targetCountry]
   
   const blockedAccountSavings = useMemo(() => {
@@ -31,11 +34,17 @@ export function BlockedAccountTracker({ savingsGoals, targetCountry }: BlockedAc
 
   if (!config || !config.visaAmount) return null
 
-  const requiredAmount = parseInt(config.visaAmount.replace(/,/g, ''), 10)
+  const requiredEUR = parseInt(config.visaAmount.replace(/,/g, ''), 10)
+  const totalSavedEUR = blockedAccountSavings.reduce((sum, goal) => {
+    const goalCurr = goal.currency || 'EUR'
+    return sum + convertCurrency(goal.currentAmount, goalCurr, 'EUR', rates)
+  }, 0)
 
-  const totalSaved = blockedAccountSavings.reduce((sum, goal) => sum + goal.currentAmount, 0)
-  const progressPercentage = Math.min((totalSaved / requiredAmount) * 100, 100)
-  const isComplete = totalSaved >= requiredAmount
+  const progressPercentage = Math.min((totalSavedEUR / requiredEUR) * 100, 100)
+  const isComplete = totalSavedEUR >= requiredEUR
+
+  const convertedSaved = convertCurrency(totalSavedEUR, 'EUR', primaryCurrency, rates)
+  const convertedRequired = convertCurrency(requiredEUR, 'EUR', primaryCurrency, rates)
 
   return (
     <Card className="mb-6 border-primary/20 bg-primary/5 shadow-sm overflow-hidden relative">
@@ -69,24 +78,34 @@ export function BlockedAccountTracker({ savingsGoals, targetCountry }: BlockedAc
       <CardContent className="relative z-10 space-y-4">
         <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-2">
           <div>
-            <div className="text-3xl font-bold text-foreground">
-              <ClientCurrency amount={totalSaved} currency="EUR" />
+            <div className="text-3xl font-bold text-foreground flex items-baseline gap-2">
+              <ClientCurrency amount={convertedSaved} currency={primaryCurrency} />
+              {primaryCurrency !== 'EUR' && (
+                <span className="text-sm text-muted-foreground font-normal">
+                  (<ClientCurrency amount={totalSavedEUR} currency="EUR" />)
+                </span>
+              )}
             </div>
             <p className="text-sm text-muted-foreground">Currently saved</p>
           </div>
           
           <div className="text-right">
-            <div className="text-xl font-semibold text-foreground">
-              <ClientCurrency amount={requiredAmount} currency="EUR" />
+            <div className="text-xl font-semibold text-foreground flex items-baseline justify-end gap-2">
+              <ClientCurrency amount={convertedRequired} currency={primaryCurrency} />
+              {primaryCurrency !== 'EUR' && (
+                <span className="text-xs text-muted-foreground font-normal">
+                  (<ClientCurrency amount={requiredEUR} currency="EUR" />)
+                </span>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground">Required amount</p>
+            <p className="text-sm text-muted-foreground">Required amount (€992/mo limit)</p>
           </div>
         </div>
 
         <div className="relative pt-1">
           <ProgressBar 
-            value={totalSaved}
-            max={requiredAmount} 
+            value={totalSavedEUR}
+            max={requiredEUR} 
             className="h-3 mb-1" 
             variant={isComplete ? 'success' : 'default'}
           />

@@ -191,7 +191,7 @@ export const VisaStepForm = ({ visaStep, onSave, onCancel }: VisaStepFormProps) 
         />
       </div>
 
-      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 ">
+      <div className="flex justify-end space-x-3 pt-6 border-t border-border ">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
