@@ -57,15 +57,17 @@ const Header = memo(function Header() {
         <div className="flex h-20 items-center justify-between">
 
           {/* Brand */}
-          <Link href="/" className="flex items-center group pl-1">
-            <Image 
-              src="/uni_transparentbg.png" 
-              alt="UniRoute DE" 
-              width={500} 
-              height={170} 
-              className="h-20 sm:h-22 w-auto object-contain shrink-0 scale-[1.85] origin-left group-hover:scale-[1.9] transition-transform duration-200 dark:drop-shadow-[0_1px_1px_rgba(255,255,255,0.35)] ml-1" 
-              priority
-            />
+          <Link href="/" className="flex items-center group">
+            <div className="h-16 w-44 sm:w-56 flex items-center justify-start overflow-hidden">
+              <Image 
+                src="/uni_transparentbg.png" 
+                alt="UniRoute DE" 
+                width={500} 
+                height={500} 
+                className="h-36 sm:h-44 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-200 dark:drop-shadow-[0_1px_2px_rgba(255,255,255,0.4)]" 
+                priority
+              />
+            </div>
           </Link>
 
           {/* Desktop Navigation */}

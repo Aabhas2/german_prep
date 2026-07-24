@@ -28,15 +28,17 @@ export default function LandingPage() {
       {/* ── Top Navigation Bar ────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/85 border-b border-border/60 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer group pl-1" onClick={() => router.push('/')}>
-            <Image 
-              src="/uni_transparentbg.png" 
-              alt="UniRoute DE" 
-              width={500} 
-              height={170} 
-              className="h-20 sm:h-22 w-auto object-contain shrink-0 scale-[1.85] origin-left group-hover:scale-[1.9] transition-transform duration-200 dark:drop-shadow-[0_1px_1px_rgba(255,255,255,0.35)] ml-1" 
-              priority
-            />
+          <div className="flex items-center cursor-pointer group" onClick={() => router.push('/')}>
+            <div className="h-16 w-44 sm:w-56 flex items-center justify-start overflow-hidden">
+              <Image 
+                src="/uni_transparentbg.png" 
+                alt="UniRoute DE" 
+                width={500} 
+                height={500} 
+                className="h-36 sm:h-44 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-200 dark:drop-shadow-[0_1px_2px_rgba(255,255,255,0.4)]" 
+                priority
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -65,7 +67,7 @@ export default function LandingPage() {
         
         <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-7">
           
-          {/* Minimal Status Badge */}
+          {/* Status Badge */}
           <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/25 text-accent text-xs font-semibold tracking-wide uppercase shadow-sm">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
