@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -30,35 +30,38 @@ export default function ExamsPage() {
   const [isDeleting, setIsDeleting] = useState(false)
 
   // Load data on mount / auth state change
-  useEffect(() => {
-    setMounted(true)
-    
-    const loadExams = async () => {
-      if (user) {
-        try {
-          const cloudExams = await dbExams.fetch(user.uid)
-          setExams(cloudExams)
-        } catch (error) {
-          console.error('Error fetching exams from cloud:', error)
-        }
-      } else {
-        try {
-          const savedExams = localStorage.getItem('exams')
-          const parsedExams = savedExams ? JSON.parse(savedExams).map((exam: any) => ({
-            ...exam,
-            plannedDate: exam.plannedDate ? new Date(exam.plannedDate) : null,
-            actualDate: exam.actualDate ? new Date(exam.actualDate) : null
-          })) : mockExams
-          setExams(parsedExams)
-        } catch (error) {
-          console.error('Error loading exams:', error)
-          setExams(mockExams)
-        }
+  const loadExams = useCallback(async () => {
+    if (user) {
+      try {
+        const cloudExams = await dbExams.fetch(user.uid)
+        setExams(cloudExams)
+      } catch (error) {
+        console.error('Error fetching exams from cloud:', error)
+        setExams([])
+      }
+    } else {
+      try {
+        const savedExams = localStorage.getItem('exams')
+        const parsedExams = savedExams ? JSON.parse(savedExams).map((exam: any) => ({
+          ...exam,
+          plannedDate: exam.plannedDate ? new Date(exam.plannedDate) : null,
+          actualDate: exam.actualDate ? new Date(exam.actualDate) : null
+        })) : mockExams
+        setExams(parsedExams)
+      } catch (error) {
+        console.error('Error loading exams:', error)
+        setExams(mockExams)
       }
     }
-
-    loadExams()
   }, [user])
+
+  useEffect(() => {
+    setMounted(true)
+    loadExams()
+    const handleDataUpdate = () => loadExams()
+    window.addEventListener('app-data-updated', handleDataUpdate)
+    return () => window.removeEventListener('app-data-updated', handleDataUpdate)
+  }, [loadExams])
 
   // Save exams locally (guest mode only)
   useEffect(() => {

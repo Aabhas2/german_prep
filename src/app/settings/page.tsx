@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import { useToast } from '@/components/ui/Toast'
 import {
   User, Bell, Download, Trash2, Moon, Sun, Palette,
   DollarSign, RefreshCw, Globe2, Monitor, LayoutDashboard,
-  CheckSquare, Shield, Info, ChevronRight
+  CheckSquare, Shield, Info, ChevronRight, AlertTriangle
 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -65,6 +66,11 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('profile')
   const [isUpdatingRates, setIsUpdatingRates] = useState(false)
 
+  // GitHub-style Reset Data State
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false)
+  const [resetConfirmInput, setResetConfirmInput] = useState('')
+  const [isResetting, setIsResetting] = useState(false)
+
   // Confirm Dialog State
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean
@@ -72,6 +78,22 @@ export default function SettingsPage() {
     payload: string | null
     isLoading: boolean
   }>({ isOpen: false, type: null, payload: null, isLoading: false })
+
+  const handleExecuteReset = async () => {
+    if (resetConfirmInput.trim() !== 'RESET') return
+    setIsResetting(true)
+    try {
+      localStorage.clear()
+      toast.success('App data successfully reset')
+      setTimeout(() => {
+        window.location.href = '/'
+      }, 500)
+    } catch {
+      toast.error('Failed to reset app data')
+    } finally {
+      setIsResetting(false)
+    }
+  }
 
   // Apply color scheme to CSS variables on html element
   const applyColorScheme = useCallback((schemeKey: string) => {
@@ -206,18 +228,7 @@ export default function SettingsPage() {
             onChange={e => handlePersonalChange('email', e.target.value)}
             placeholder="you@example.com" className="input-field" />
         </div>
-        <div className="input-group">
-          <label className="input-label" htmlFor="s-country">Target Country</label>
-          <select id="s-country" value={settings.personalDetails.targetCountry}
-            onChange={e => handlePersonalChange('targetCountry', e.target.value)}
-            className="input-field">
-            <option value="Germany">🇩🇪 Germany</option>
-            <option value="Canada">🇨🇦 Canada</option>
-            <option value="Netherlands">🇳🇱 Netherlands</option>
-            <option value="Switzerland">🇨🇭 Switzerland</option>
-            <option value="Austria">🇦🇹 Austria</option>
-          </select>
-        </div>
+
         <div className="input-group">
           <label className="input-label" htmlFor="s-date">Target Start Date</label>
           <input id="s-date" type="date" value={settings.personalDetails.targetStartDate}
@@ -550,10 +561,10 @@ export default function SettingsPage() {
         </Button>
         <Button
           variant="outline"
-          onClick={handleClearData}
-          className="justify-center text-danger border-danger/30 hover:bg-danger/10"
+          onClick={() => { setResetConfirmInput(''); setIsResetModalOpen(true); }}
+          className="justify-center text-danger border-danger/40 hover:bg-danger/10 font-medium"
         >
-          <Trash2 className="h-4 w-4 mr-2" /> Clear All Local Data
+          <Trash2 className="h-4 w-4 mr-2" /> Reset All App Data
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
@@ -669,6 +680,55 @@ export default function SettingsPage() {
         variant={confirmState.type === 'import' ? 'warning' : 'danger'}
         isLoading={confirmState.isLoading}
       />
+
+      {/* GitHub-style Reset App Data Modal */}
+      <Modal 
+        isOpen={isResetModalOpen} 
+        onClose={() => { if (!isResetting) { setIsResetModalOpen(false); setResetConfirmInput(''); } }}
+        title="Reset All App Data"
+        size="sm"
+      >
+        <div className="space-y-4 pt-1">
+          <div className="p-4 bg-danger/10 border border-danger/20 rounded-xl flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-danger shrink-0 mt-0.5" />
+            <p className="text-xs text-foreground leading-relaxed">
+              <strong>Warning:</strong> This action is destructive and cannot be undone. This will permanently reset all your university applications, tasks, notes, budget items, and custom settings.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-foreground">
+              To confirm, type <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-danger font-bold">RESET</span> in the box below:
+            </label>
+            <input
+              type="text"
+              value={resetConfirmInput}
+              onChange={e => setResetConfirmInput(e.target.value)}
+              placeholder="Type RESET here"
+              className="input-field font-mono text-sm uppercase tracking-wider"
+              autoFocus
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button 
+              variant="outline" 
+              className="flex-1" 
+              onClick={() => { setIsResetModalOpen(false); setResetConfirmInput(''); }}
+              disabled={isResetting}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1 bg-danger hover:bg-danger/90 text-white border-danger disabled:opacity-40"
+              onClick={handleExecuteReset}
+              disabled={resetConfirmInput.trim() !== 'RESET' || isResetting}
+            >
+              {isResetting ? 'Resetting...' : 'Reset Everything'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </Layout>
   )
 }

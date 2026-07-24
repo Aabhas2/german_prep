@@ -56,41 +56,45 @@ export default function FinancePage() {
   const [editingSavingsGoal, setEditingSavingsGoal] = useState<SavingsGoal | undefined>()
 
   // ─── Load data ────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const loadFinances = async () => {
-      setLoading(true)
-      if (user) {
-        try {
-          const [cloudFinance, cloudSavings] = await Promise.all([
-            dbFinance.fetch(user.uid),
-            dbSavingsGoals.fetch(user.uid),
-          ])
-          setFinanceItems(cloudFinance)
-          setSavingsGoals(cloudSavings)
-        } catch {
-          toast.error('Failed to load finance data')
-        }
-      } else {
-        try {
-          const savedItems = localStorage.getItem('financeItems')
-          const savedSavings = localStorage.getItem('savingsGoals')
-          setFinanceItems(savedItems ? JSON.parse(savedItems) : mockFinanceItems)
-          setSavingsGoals(savedSavings
-            ? JSON.parse(savedSavings).map((g: any) => ({
-                ...g,
-                deadline: g.deadline ? new Date(g.deadline) : undefined,
-                createdAt: g.createdAt ? new Date(g.createdAt) : new Date(),
-              }))
-            : mockSavingsGoals)
-        } catch {
-          setFinanceItems(mockFinanceItems)
-          setSavingsGoals(mockSavingsGoals)
-        }
+  const loadFinances = useCallback(async () => {
+    setLoading(true)
+    if (user) {
+      try {
+        const [cloudFinance, cloudSavings] = await Promise.all([
+          dbFinance.fetch(user.uid),
+          dbSavingsGoals.fetch(user.uid),
+        ])
+        setFinanceItems(cloudFinance)
+        setSavingsGoals(cloudSavings)
+      } catch {
+        toast.error('Failed to load finance data')
       }
-      setLoading(false)
+    } else {
+      try {
+        const savedItems = localStorage.getItem('financeItems')
+        const savedSavings = localStorage.getItem('savingsGoals')
+        setFinanceItems(savedItems ? JSON.parse(savedItems) : mockFinanceItems)
+        setSavingsGoals(savedSavings
+          ? JSON.parse(savedSavings).map((g: any) => ({
+              ...g,
+              deadline: g.deadline ? new Date(g.deadline) : undefined,
+              createdAt: g.createdAt ? new Date(g.createdAt) : new Date(),
+            }))
+          : mockSavingsGoals)
+      } catch {
+        setFinanceItems(mockFinanceItems)
+        setSavingsGoals(mockSavingsGoals)
+      }
     }
+    setLoading(false)
+  }, [user, toast])
+
+  useEffect(() => {
     loadFinances()
-  }, [user])
+    const handleDataUpdate = () => loadFinances()
+    window.addEventListener('app-data-updated', handleDataUpdate)
+    return () => window.removeEventListener('app-data-updated', handleDataUpdate)
+  }, [loadFinances])
 
   // Persist locally for guests
   useEffect(() => {

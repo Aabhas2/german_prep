@@ -10,7 +10,7 @@ export default function LoadingScreen() {
           alt="UniRoute DE" 
           width={500} 
           height={160} 
-          className="h-36 sm:h-44 w-auto mx-auto object-contain animate-pulse -my-4" 
+          className="h-36 sm:h-44 w-auto mx-auto object-contain animate-pulse -my-4 dark:brightness-[2.2] dark:contrast-[1.2]" 
           priority
         />
         <p className="text-muted-foreground mt-1 text-sm font-medium">Loading your dashboard...</p>

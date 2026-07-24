@@ -9,6 +9,8 @@ import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Modal } from '@/components/ui/Modal'
 import { SkeletonPage } from '@/components/ui/Skeleton'
 import { TaskForm } from '@/components/forms/TaskForm'
+import { UniversityForm } from '@/components/forms/UniversityForm'
+import { ExamForm } from '@/components/forms/ExamForm'
 import { ClientCurrency } from '@/components/ui/ClientCurrency'
 import { DeadlineTimeline } from '@/components/widgets/DeadlineTimeline'
 import { DeadlineAlerts } from '@/components/widgets/DeadlineAlerts'
@@ -38,58 +40,68 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | undefined>()
+  const [isUniModalOpen, setIsUniModalOpen] = useState(false)
+  const [isExamModalOpen, setIsExamModalOpen] = useState(false)
 
   // ─── Load data ────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true)
-      if (user) {
-        try {
-          const [cloudTasks, cloudUnis, cloudExams, cloudFinance] = await Promise.all([
-            dbTasks.fetch(user.uid),
-            dbUniversities.fetch(user.uid),
-            dbExams.fetch(user.uid),
-            dbFinance.fetch(user.uid),
-          ])
-          setTasks(cloudTasks.length > 0 ? cloudTasks : mockTasks)
-          setUniversities(cloudUnis.length > 0 ? cloudUnis : mockUniversities)
-          setExams(cloudExams.length > 0 ? cloudExams : mockExams)
-          setFinanceItems(cloudFinance.length > 0 ? cloudFinance : mockFinanceItems)
-        } catch (error) {
-          console.warn('Dashboard cloud fetch error fallback:', error)
-          setTasks(mockTasks)
-          setUniversities(mockUniversities)
-          setExams(mockExams)
-          setFinanceItems(mockFinanceItems)
-        }
-      } else {
-        try {
-          const savedTasks = localStorage.getItem('tasks')
-          const savedUnis = localStorage.getItem('universities')
-          const savedExams = localStorage.getItem('exams')
-          const savedFinance = localStorage.getItem('financeItems')
-          setTasks(savedTasks
-            ? JSON.parse(savedTasks).map((t: any) => ({ ...t, dueDate: t.dueDate ? new Date(t.dueDate) : undefined, createdAt: new Date(t.createdAt ?? Date.now()) }))
-            : mockTasks)
-          setUniversities(savedUnis
-            ? JSON.parse(savedUnis).map((u: any) => ({ ...u, applicationDeadline: new Date(u.applicationDeadline) }))
-            : mockUniversities)
-          setExams(savedExams
-            ? JSON.parse(savedExams).map((e: any) => ({ ...e, plannedDate: e.plannedDate ? new Date(e.plannedDate) : undefined }))
-            : mockExams)
-          setFinanceItems(savedFinance ? JSON.parse(savedFinance) : mockFinanceItems)
-        } catch {
-          setTasks(mockTasks); setUniversities(mockUniversities); setExams(mockExams); setFinanceItems(mockFinanceItems)
-        }
+  const loadData = useCallback(async () => {
+    if (user) {
+      try {
+        const [cloudTasks, cloudUnis, cloudExams, cloudFinance] = await Promise.all([
+          dbTasks.fetch(user.uid),
+          dbUniversities.fetch(user.uid),
+          dbExams.fetch(user.uid),
+          dbFinance.fetch(user.uid),
+        ])
+        setTasks(cloudTasks.length > 0 ? cloudTasks : mockTasks)
+        setUniversities(cloudUnis.length > 0 ? cloudUnis : mockUniversities)
+        setExams(cloudExams.length > 0 ? cloudExams : mockExams)
+        setFinanceItems(cloudFinance.length > 0 ? cloudFinance : mockFinanceItems)
+      } catch (error) {
+        console.warn('Dashboard cloud fetch error fallback:', error)
+        setTasks(mockTasks)
+        setUniversities(mockUniversities)
+        setExams(mockExams)
+        setFinanceItems(mockFinanceItems)
       }
-      setLoading(false)
+    } else {
+      try {
+        const savedTasks = localStorage.getItem('tasks')
+        const savedUnis = localStorage.getItem('universities')
+        const savedExams = localStorage.getItem('exams')
+        const savedFinance = localStorage.getItem('financeItems')
+
+        const sanitizeTitle = (t: string) => t.replace(/Austrian/gi, 'German')
+
+        setTasks(savedTasks
+          ? JSON.parse(savedTasks).map((t: any) => ({
+              ...t,
+              title: sanitizeTitle(t.title),
+              description: t.description ? sanitizeTitle(t.description) : '',
+              dueDate: t.dueDate ? new Date(t.dueDate) : undefined,
+              createdAt: new Date(t.createdAt ?? Date.now())
+            }))
+          : mockTasks)
+        setUniversities(savedUnis
+          ? JSON.parse(savedUnis).map((u: any) => ({ ...u, applicationDeadline: new Date(u.applicationDeadline) }))
+          : mockUniversities)
+        setExams(savedExams
+          ? JSON.parse(savedExams).map((e: any) => ({ ...e, plannedDate: e.plannedDate ? new Date(e.plannedDate) : undefined }))
+          : mockExams)
+        setFinanceItems(savedFinance ? JSON.parse(savedFinance) : mockFinanceItems)
+      } catch {
+        setTasks(mockTasks); setUniversities(mockUniversities); setExams(mockExams); setFinanceItems(mockFinanceItems)
+      }
     }
-    loadData()
+    setLoading(false)
   }, [user])
 
   useEffect(() => {
-    if (!loading && !user) localStorage.setItem('tasks', JSON.stringify(tasks))
-  }, [tasks, loading, user])
+    loadData()
+    const handleDataUpdate = () => loadData()
+    window.addEventListener('app-data-updated', handleDataUpdate)
+    return () => window.removeEventListener('app-data-updated', handleDataUpdate)
+  }, [loadData])
 
   // ─── Derived stats ────────────────────────────────────────────────────────
   const stats = useMemo(() => {
@@ -103,19 +115,65 @@ export default function Dashboard() {
     return { total, done, inProgress, pct: total > 0 ? Math.round((done / total) * 100) : 0, totalBudget, totalPaid, appInProgress }
   }, [tasks, financeItems, universities, settings.currency])
 
-  // ─── Task handlers ────────────────────────────────────────────────────────
+  // ─── Handlers ─────────────────────────────────────────────────────────────
   const handleAddTask = useCallback(async (data: Omit<Task, 'id' | 'createdAt'>) => {
     if (user) {
       try {
         const added = await dbTasks.add(user.uid, data)
-        setTasks(prev => [...prev, added])
+        setTasks(prev => [added, ...prev])
         toast.success('Task added!')
       } catch { toast.error('Failed to add task') }
     } else {
-      setTasks(prev => [...prev, { ...data, id: Date.now().toString(), createdAt: new Date() }])
-      toast.success('Task added')
+      const newTask: Task = { ...data, id: Date.now().toString(), createdAt: new Date() }
+      setTasks(prev => {
+        const updated = [newTask, ...prev]
+        localStorage.setItem('tasks', JSON.stringify(updated))
+        window.dispatchEvent(new Event('app-data-updated'))
+        return updated
+      })
+      toast.success('Task added!')
     }
     setIsTaskModalOpen(false)
+  }, [user, toast])
+
+  const handleAddUniversity = useCallback(async (data: Omit<University, 'id'>) => {
+    if (user) {
+      try {
+        const added = await dbUniversities.add(user.uid, data)
+        setUniversities(prev => [added, ...prev])
+        toast.success('University added!')
+      } catch { toast.error('Failed to add university') }
+    } else {
+      const newUni: University = { ...data, id: Date.now().toString() }
+      setUniversities(prev => {
+        const updated = [newUni, ...prev]
+        localStorage.setItem('universities', JSON.stringify(updated))
+        window.dispatchEvent(new Event('app-data-updated'))
+        return updated
+      })
+      toast.success('University added!')
+    }
+    setIsUniModalOpen(false)
+  }, [user, toast])
+
+  const handleAddExam = useCallback(async (data: Exam) => {
+    if (user) {
+      try {
+        const added = await dbExams.add(user.uid, data)
+        setExams(prev => [added, ...prev])
+        toast.success('Exam added!')
+      } catch { toast.error('Failed to add exam') }
+    } else {
+      const newExam: Exam = { ...data, id: data.id || Date.now().toString() }
+      setExams(prev => {
+        const updated = [newExam, ...prev]
+        localStorage.setItem('exams', JSON.stringify(updated))
+        window.dispatchEvent(new Event('app-data-updated'))
+        return updated
+      })
+      toast.success('Exam added!')
+    }
+    setIsExamModalOpen(false)
   }, [user, toast])
 
   const handleUpdateTask = useCallback(async (data: Omit<Task, 'id' | 'createdAt'>) => {
@@ -153,14 +211,14 @@ export default function Dashboard() {
               Welcome{settings.personalDetails.name ? `, ${settings.personalDetails.name.split(' ')[0]}` : ''}! 👋
             </h1>
             <p className="text-muted-foreground text-sm">
-              {country} preparation · {stats.pct}% complete · {stats.done} of {stats.total} tasks done
+              Germany study preparation · {stats.pct}% complete · {stats.done} of {stats.total} tasks done
             </p>
             <div className="mt-4 max-w-sm">
               <ProgressBar value={stats.pct} showPercentage={false} />
             </div>
           </div>
           <div className="absolute bottom-4 right-6 text-4xl pointer-events-none opacity-30 select-none">
-            {country === 'Germany' ? '🇩🇪' : country === 'Canada' ? '🇨🇦' : country === 'Netherlands' ? '🇳🇱' : '🌍'}
+            🇩🇪
           </div>
         </div>
 
@@ -234,14 +292,14 @@ export default function Dashboard() {
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { label: 'Add University', icon: GraduationCap, color: 'text-info', bg: 'bg-info/10', hbg: 'group-hover:bg-info/20', href: '/universities' },
-                  { label: 'Add Exam', icon: FileText, color: 'text-primary', bg: 'bg-primary/10', hbg: 'group-hover:bg-primary/20', href: '/exams' },
-                  { label: 'Add Task', icon: Plus, color: 'text-success', bg: 'bg-success/10', hbg: 'group-hover:bg-success/20', href: null },
-                  { label: 'Finance', icon: Target, color: 'text-accent', bg: 'bg-accent/10', hbg: 'group-hover:bg-accent/20', href: '/finance' },
-                ].map(({ label, icon: Icon, color, bg, hbg, href }) => (
+                  { label: 'Add University', icon: GraduationCap, color: 'text-info', bg: 'bg-info/10', hbg: 'group-hover:bg-info/20', onClick: () => setIsUniModalOpen(true) },
+                  { label: 'Add Exam', icon: FileText, color: 'text-primary', bg: 'bg-primary/10', hbg: 'group-hover:bg-primary/20', onClick: () => setIsExamModalOpen(true) },
+                  { label: 'Add Task', icon: Plus, color: 'text-success', bg: 'bg-success/10', hbg: 'group-hover:bg-success/20', onClick: () => setIsTaskModalOpen(true) },
+                  { label: 'Finance', icon: Target, color: 'text-accent', bg: 'bg-accent/10', hbg: 'group-hover:bg-accent/20', onClick: () => router.push('/finance') },
+                ].map(({ label, icon: Icon, color, bg, hbg, onClick }) => (
                   <button
                     key={label}
-                    onClick={() => href ? router.push(href) : setIsTaskModalOpen(true)}
+                    onClick={onClick}
                     className="flex flex-col items-center justify-center gap-2 p-5 rounded-xl border border-border bg-card hover:bg-muted/40 hover:border-primary/30 transition-all duration-200 group"
                   >
                     <div className={`w-10 h-10 rounded-xl ${bg} ${hbg} flex items-center justify-center transition-colors`}>
@@ -268,7 +326,7 @@ export default function Dashboard() {
                   .filter(t => t.status !== 'Completed')
                   .slice(0, settings.dashboard.tasksToShow ?? 5)
                   .map(task => (
-                    <div key={task.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                    <div key={task.id} className="flex items-center justify-between py-2 border-b border-border last:border-0 cursor-pointer hover:bg-muted/30 px-2 rounded-lg transition-colors" onClick={() => router.push('/tasks')}>
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={`w-2 h-2 rounded-full shrink-0 ${task.priority === 'High' ? 'bg-danger' : task.priority === 'Medium' ? 'bg-warning' : 'bg-muted-foreground'}`} />
                         <p className="text-sm font-medium text-foreground truncate">{task.title}</p>
@@ -296,6 +354,32 @@ export default function Dashboard() {
           task={editingTask}
           onSubmit={editingTask ? handleUpdateTask : handleAddTask}
           onCancel={() => { setIsTaskModalOpen(false); setEditingTask(undefined) }}
+        />
+      </Modal>
+
+      {/* University Modal */}
+      <Modal
+        isOpen={isUniModalOpen}
+        onClose={() => setIsUniModalOpen(false)}
+        title="Add University Application"
+        size="lg"
+      >
+        <UniversityForm
+          onSubmit={handleAddUniversity}
+          onCancel={() => setIsUniModalOpen(false)}
+        />
+      </Modal>
+
+      {/* Exam Modal */}
+      <Modal
+        isOpen={isExamModalOpen}
+        onClose={() => setIsExamModalOpen(false)}
+        title="Add Standardized Exam"
+        size="md"
+      >
+        <ExamForm
+          onSave={handleAddExam}
+          onCancel={() => setIsExamModalOpen(false)}
         />
       </Modal>
     </Layout>

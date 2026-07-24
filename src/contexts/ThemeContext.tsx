@@ -111,7 +111,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setSettings(prev => ({
           ...prev,
           ...parsed,
-          personalDetails: { ...prev.personalDetails, ...(parsed.personalDetails ?? {}) },
+          personalDetails: { ...prev.personalDetails, ...(parsed.personalDetails ?? {}), targetCountry: 'Germany' },
           currency:        {
             ...prev.currency,
             ...(parsed.currency ?? {}),

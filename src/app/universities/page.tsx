@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -27,13 +27,14 @@ export default function UniversitiesPage() {
 
   useEffect(() => {
     setMounted(true)
-    const loadUnis = async () => {
+    const loadUnis = useCallback(async () => {
       if (user) {
         try {
           const cloudUnis = await dbUniversities.fetch(user.uid)
           setUniversities(cloudUnis)
         } catch (error) {
           console.error('Error fetching universities from cloud:', error)
+          setUniversities([])
         }
       } else {
         try {
@@ -50,8 +51,12 @@ export default function UniversitiesPage() {
           setUniversities(mockUniversities)
         }
       }
-    }
+    }, [user])
+
     loadUnis()
+    const handleDataUpdate = () => loadUnis()
+    window.addEventListener('app-data-updated', handleDataUpdate)
+    return () => window.removeEventListener('app-data-updated', handleDataUpdate)
   }, [user])
 
   useEffect(() => {

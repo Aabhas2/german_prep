@@ -22,18 +22,15 @@ export default function LandingPage() {
       {/* ── Top Navigation Bar ────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border/60 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer group" onClick={() => router.push('/')}>
+          <div className="flex items-center cursor-pointer group pl-1" onClick={() => router.push('/')}>
             <Image 
               src="/uni_transparentbg.png" 
               alt="UniRoute DE" 
-              width={400} 
-              height={140} 
-              className="h-20 sm:h-24 w-auto object-contain shrink-0 -my-3 group-hover:scale-[1.05] transition-transform duration-200" 
+              width={500} 
+              height={170} 
+              className="h-20 sm:h-22 w-auto object-contain shrink-0 scale-[1.85] origin-left group-hover:scale-[1.9] transition-transform duration-200 dark:drop-shadow-[0_1px_1px_rgba(255,255,255,0.35)] ml-1" 
               priority
             />
-            <span className="text-[11px] font-semibold text-muted-foreground hidden sm:block border-l border-border pl-3 ml-1">
-              Study Abroad Suite 🇩🇪
-            </span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -56,10 +53,25 @@ export default function LandingPage() {
       </header>
 
       {/* ── Hero Section ─────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28">
+      <section className="relative overflow-hidden pt-12 pb-20 md:pt-16 md:pb-28">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6">
           
+          {/* Hero Brand Showcase Emblem */}
+          <div className="flex justify-center pt-2 pb-1">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 blur-2xl rounded-full scale-125 opacity-70 group-hover:opacity-90 transition-opacity" />
+              <Image 
+                src="/uni_transparentbg.png" 
+                alt="UniRoute DE Brand Logo" 
+                width={600} 
+                height={200} 
+                className="relative z-10 h-32 sm:h-44 w-auto object-contain drop-shadow-xl dark:drop-shadow-[0_2px_12px_rgba(255,255,255,0.25)] hover:scale-105 transition-transform duration-300"
+                priority
+              />
+            </div>
+          </div>
+
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-semibold tracking-wide uppercase shadow-sm">
             <Sparkles className="h-3.5 w-3.5" />
             <span>Updated for Academic Admissions · APS & dMAT Ready</span>

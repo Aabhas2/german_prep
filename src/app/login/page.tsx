@@ -130,7 +130,7 @@ export default function LoginPage() {
               alt="UniRoute DE" 
               width={600} 
               height={200} 
-              className="h-52 sm:h-64 w-auto object-contain drop-shadow-2xl scale-110" 
+              className="h-52 sm:h-64 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)] scale-110" 
               priority
             />
             <p className="text-white/90 text-xs font-bold tracking-widest uppercase bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 shadow-sm relative z-20">

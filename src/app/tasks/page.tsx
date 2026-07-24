@@ -28,37 +28,43 @@ export default function TasksPage() {
   const [isDeleting, setIsDeleting] = useState(false)
 
   // Load data on mount / auth state change
-  useEffect(() => {
-    setMounted(true)
-    
-    const loadTasks = async () => {
-      if (user) {
-        try {
-          const cloudTasks = await dbTasks.fetch(user.uid)
-          setTasks(cloudTasks)
-        } catch (error) {
-          console.error('Error fetching cloud tasks:', error)
-        }
-      } else {
-        try {
-          const savedTasks = localStorage.getItem('tasks')
-          const parsedTasks = savedTasks ? JSON.parse(savedTasks).map((task: any) => ({
-            ...task,
-            dueDate: task.dueDate ? new Date(task.dueDate) : null,
-            createdAt: task.createdAt ? new Date(task.createdAt) : new Date()
-          })) : mockTasks
-          setTasks(parsedTasks)
-        } catch (error) {
-          console.error('Error loading tasks:', error)
-          setTasks(mockTasks)
-        }
+  const loadTasks = useCallback(async () => {
+    if (user) {
+      try {
+        const cloudTasks = await dbTasks.fetch(user.uid)
+        setTasks(cloudTasks)
+      } catch (error) {
+        console.error('Error fetching cloud tasks:', error)
+        setTasks([])
+      }
+    } else {
+      try {
+        const savedTasks = localStorage.getItem('tasks')
+        const sanitizeTitle = (t: string) => t.replace(/Austrian/gi, 'German')
+        const parsedTasks = savedTasks ? JSON.parse(savedTasks).map((task: any) => ({
+          ...task,
+          title: sanitizeTitle(task.title),
+          description: task.description ? sanitizeTitle(task.description) : '',
+          dueDate: task.dueDate ? new Date(task.dueDate) : null,
+          createdAt: task.createdAt ? new Date(task.createdAt) : new Date()
+        })) : mockTasks
+        setTasks(parsedTasks)
+      } catch (error) {
+        console.error('Error loading tasks:', error)
+        setTasks(mockTasks)
       }
     }
-
-    loadTasks()
   }, [user])
 
-  // Save tasks when they change (local guest mode only)
+  useEffect(() => {
+    setMounted(true)
+    loadTasks()
+    const handleDataUpdate = () => loadTasks()
+    window.addEventListener('app-data-updated', handleDataUpdate)
+    return () => window.removeEventListener('app-data-updated', handleDataUpdate)
+  }, [loadTasks])
+
+  // Save tasks locally (guest mode only)
   useEffect(() => {
     if (mounted && !user) {
       localStorage.setItem('tasks', JSON.stringify(tasks))
@@ -126,7 +132,8 @@ export default function TasksPage() {
     if (user) {
       try {
         const added = await dbTasks.add(user.uid, taskData)
-        setTasks(prev => [...prev, added])
+        setTasks(prev => [added, ...prev])
+        window.dispatchEvent(new Event('app-data-updated'))
       } catch (error) {
         console.error('Error adding task:', error)
       }
@@ -136,7 +143,12 @@ export default function TasksPage() {
         id: Date.now().toString(),
         createdAt: new Date()
       }
-      setTasks(prev => [...prev, newTask])
+      setTasks(prev => {
+        const updated = [newTask, ...prev]
+        localStorage.setItem('tasks', JSON.stringify(updated))
+        window.dispatchEvent(new Event('app-data-updated'))
+        return updated
+      })
     }
     setIsModalOpen(false)
   }, [user])
@@ -365,13 +377,13 @@ export default function TasksPage() {
 
         {/* Overdue Tasks Alert */}
         {tasks.some(task => task.dueDate && task.dueDate < new Date() && task.status !== 'Completed') && (
-          <Card className="border-red-200 bg-red-50">
+          <Card className="border-danger/30 bg-danger/10 dark:bg-danger/15 shadow-sm">
             <CardContent className="flex items-center p-4">
-              <AlertTriangle className="h-5 w-5 text-red-600 mr-3" />
+              <AlertTriangle className="h-5 w-5 text-danger shrink-0 mr-3" />
               <div>
-                <h3 className="font-medium text-red-800">Overdue Tasks</h3>
-                <p className="text-sm text-red-700">
-                  You have {tasks.filter(task => task.dueDate && task.dueDate < new Date() && task.status !== 'Completed').length} overdue tasks that need attention.
+                <h3 className="font-semibold text-danger text-sm">Overdue Tasks</h3>
+                <p className="text-sm text-foreground/80 mt-0.5">
+                  You have {tasks.filter(task => task.dueDate && task.dueDate < new Date() && task.status !== 'Completed').length} overdue task(s) that need attention.
                 </p>
               </div>
             </CardContent>
