@@ -2,14 +2,17 @@ import { initializeApp, getApps, getApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
-// Use environment variables for client-side Firebase config
+// Helper to strip hidden whitespace and newlines from env variables
+const cleanEnv = (val?: string) => (val ? val.trim().replace(/[\r\n\t]/g, '') : '')
+
+// Use environment variables for client-side Firebase config with sanitized values
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'dummy-api-key',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'germany-prep-hub.firebaseapp.com',
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'germany-prep-hub',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'germany-prep-hub.firebasestorage.app',
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '1234567890',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:1234567890:web:1234567890'
+  apiKey: cleanEnv(process.env.NEXT_PUBLIC_FIREBASE_API_KEY) || 'dummy-api-key',
+  authDomain: cleanEnv(process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN) || 'study-abroad-hub.firebaseapp.com',
+  projectId: cleanEnv(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) || 'study-abroad-hub',
+  storageBucket: cleanEnv(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET) || 'study-abroad-hub.firebasestorage.app',
+  messagingSenderId: cleanEnv(process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID) || '1234567890',
+  appId: cleanEnv(process.env.NEXT_PUBLIC_FIREBASE_APP_ID) || '1:1234567890:web:1234567890'
 }
 
 // Initialize Firebase (safeguard for server-side rendering)
