@@ -1,238 +1,132 @@
-# Germany Prep Hub 🇩🇪
+# UniRoute DE 🇩🇪 — Study Abroad Suite for Germany
 
-A comprehensive, modern web application for managing your study abroad preparation journey to Germany. Built with Next.js, TypeScript, and Tailwind CSS.
+A comprehensive, production-grade web application designed for international students planning and managing their higher education journey to Germany. Built with Next.js 16, TypeScript, Tailwind CSS, and Firebase.
 
-![Germany Prep Hub](https://img.shields.io/badge/Next.js-15.1.0-black?style=flat-square&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=flat-square&logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.3+-38B2AC?style=flat-square&logo=tailwind-css)
+![UniRoute DE](https://img.shields.io/badge/UniRoute-DE_v1.0-8B2340?style=for-the-badge)
+![Next.js 16](https://img.shields.io/badge/Next.js-16.2-black?style=for-the-badge&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=for-the-badge&logo=typescript)
+![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Firestore-FFCA28?style=for-the-badge&logo=firebase)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)
+
+---
 
 ## 🎯 Purpose
 
-Germany Prep Hub is designed to be your personalized preparation hub that visually and functionally organizes all components of your study abroad journey. It's clean, professional-looking, and fully customizable, allowing you to add, edit, and remove sections or data over time.
+**UniRoute DE** is an all-in-one preparation and application management workspace tailored specifically for students applying to German universities (TUM, RWTH Aachen, Stuttgart, LMU, etc.). It organizes every phase of your journey—from APS certification and university selection to Blocked Account (Sperrkonto) budget tracking, visa appointments, and WG student housing.
 
-## ✨ Features
+---
 
-### 🎯 Core Functionality
-- **Universities Management**: Track applications, deadlines, and status for German universities
-- **Task & Checklist Manager**: Kanban-style task board with priority management
-- **Finance Planner**: Budget tracking with multi-currency support (USD, EUR, INR)
-- **Exam Tracker**: Manage standardized tests (IELTS, TestAS, APS)
-- **Scholarship Database**: Track opportunities and deadlines
-- **Visa & Documents**: Step-by-step visa process tracking
-- **Notes System**: Organized note-taking with tags and categories
-- **Settings & Customization**: Extensive personalization options
+## ✨ Core Features & Modules
 
-### 🌟 Advanced Features
-- **Multi-Currency Support**: Seamless conversion between USD, EUR, and INR with proper formatting
-- **Real-time Data Persistence**: All data saved locally with automatic sync
-- **Responsive Design**: Works perfectly on desktop, tablet, and mobile
-- **Error Boundaries**: Graceful error handling and recovery
-- **Form Validation**: Comprehensive input validation and error prevention
-- **Progress Tracking**: Visual progress bars and completion statistics
-- **Quick Actions**: Fast access to common tasks from dashboard
+### 🎓 1. University Application Tracker
+- Track applications across German universities (`Interested`, `Applied`, `Accepted`, `Rejected`).
+- Monitor deadlines, course names, instruction language, and campus locations.
+- Track document checklists per application (SOPs, LORs, Academic Transcripts).
 
-### 🎨 Customization Options
-- **Currency Settings**: Primary currency selection with custom exchange rates
-- **Dashboard Layout**: Toggle components, adjust refresh intervals
-- **Task Management**: Default priorities, sorting options, completion settings
-- **Appearance**: Color schemes, font sizes, compact mode, animations
-- **Data Management**: Auto-save, backup frequency, export formats
+### 💳 2. Sperrkonto (Blocked Account) & Finance Planner
+- **Visa Sperrkonto Requirement Tracker**: Official €11,904 / €992/month requirement pre-calculated.
+- **Multi-Currency Support**: Real-time conversions between **EUR (€)**, **INR (₹)**, and **USD ($)**.
+- **Live Exchange Rate API**: Auto-updates exchange rates with stale-cache self-healing guards.
+- Expense breakdown by category (Application fees, Semester fee, Travel, Rent deposit).
+- Custom Savings Goals tracker for your Study Abroad fund.
 
-## 🚀 Getting Started
+### 📝 3. Exam & APS Certification Tracker
+- Manage standardized exams required for German admissions (**IELTS Academic**, **TestAS**, **APS Certificate**, **dMAT**).
+- Track registration links, fees, exam dates, scores, and preparation resources.
+
+### 📜 4. Visa & Document Workflow
+- Step-by-step German Student Visa milestone tracker.
+- Document checklists for embassy appointments, health insurance (TK / Barmer), and blocked account proof.
+
+### 🏡 5. WG & Housing Manager
+- Track student dormitories (Studentenwerk) and private WG (WG-Gesucht) viewing appointments and rent costs.
+
+### 🎓 6. DAAD & Deutschlandstipendium Database
+- Searchable directory of German scholarship opportunities with eligibility criteria and deadlines.
+
+### 🔒 7. Cloud Sync & Local Guest Mode
+- **Instant Guest Mode**: Fully operational directly in the browser using `localStorage` without registration.
+- **Firebase Cloud Auth & Firestore**: Optional sign-in via Google or Email to sync data across all your devices seamlessly.
+- **Clean New-User Initialization**: Signed-in accounts start with a pristine 100% empty workspace.
+
+### ⚙️ 8. Customization & Data Management
+- **Appearance & Color Schemes**: Dark/Light mode theme system with multiple curated color palettes.
+- **GitHub-style Reset Modal**: Destructive typed confirmation reset (`type RESET`) for total privacy control.
+- Data export options (JSON / CSV).
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 18.0 or later
-- npm or yarn package manager
+- npm or yarn
 
-### Installation
+### Installation & Local Run
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd germany-prep-hub
+   git clone https://github.com/Aabhas2/uniroute-de.git
+   cd uniroute-de
    ```
 
 2. **Install dependencies**
    ```bash
    npm install
-   # or
-   yarn install
    ```
 
-3. **Run the development server**
+3. **Start the development server**
    ```bash
    npm run dev
-   # or
-   yarn dev
    ```
 
-4. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
-
-## 🏗️ Build and Deployment
-
-### Production Build
-```bash
-npm run build
-npm start
-```
-
-### Static Export (Optional)
-For static hosting platforms:
-```bash
-npm run build
-npm run export
-```
-
-### Deployment Platforms
-
-#### Vercel (Recommended)
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Deploy automatically with zero configuration
-
-#### Netlify
-1. Build the project: `npm run build`
-2. Deploy the `.next` folder to Netlify
-
-#### Other Platforms
-The application can be deployed to any platform that supports Node.js applications.
-
-## 📁 Project Structure
-
-```
-src/
-├── app/                    # Next.js App Router pages
-│   ├── exams/             # Exam management page
-│   ├── finance/           # Finance planning page
-│   ├── notes/             # Notes management page
-│   ├── scholarships/      # Scholarship tracking page
-│   ├── settings/          # Settings and preferences
-│   ├── tasks/             # Task management page
-│   ├── universities/      # University applications page
-│   ├── visa/              # Visa process tracking
-│   └── page.tsx           # Dashboard (home page)
-├── components/            # Reusable UI components
-│   ├── forms/             # Form components
-│   ├── layout/            # Layout components
-│   └── ui/                # Base UI components
-├── data/                  # Mock data and constants
-├── hooks/                 # Custom React hooks
-├── lib/                   # Utility functions
-└── types/                 # TypeScript type definitions
-```
-
-## 🛠️ Technology Stack
-
-- **Framework**: Next.js 15.1.0 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
-- **State Management**: React Hooks + LocalStorage
-- **Data Persistence**: Browser LocalStorage
-- **Build Tool**: Next.js built-in bundler
-
-## 🔧 Configuration
-
-### Environment Variables
-No environment variables are required for basic functionality. The app uses browser LocalStorage for data persistence.
-
-### Customization
-All settings can be configured through the Settings page in the application:
-- Personal details
-- Currency preferences
-- Dashboard layout
-- Task management options
-- Appearance settings
-- Data export/import options
-
-## 📊 Data Management
-
-### Data Storage
-- All data is stored locally in the browser's LocalStorage
-- No external database required
-- Data persists across browser sessions
-- Export/import functionality available
-
-### Data Export
-- JSON format for complete data backup
-- CSV format for spreadsheet compatibility
-- Accessible through Settings page
-
-### Data Import
-Currently supports manual data entry. Bulk import features can be added as needed.
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Settings page not loading**
-   - Clear browser cache and localStorage
-   - Refresh the page
-   - Check browser console for errors
-
-2. **Currency conversion not working**
-   - Verify exchange rates in Settings
-   - Check internet connection for live rates
-   - Reset to default exchange rates if needed
-
-3. **Data not persisting**
-   - Ensure LocalStorage is enabled in browser
-   - Check available storage space
-   - Try incognito mode to test
-
-### Error Recovery
-The application includes comprehensive error boundaries that will:
-- Display user-friendly error messages
-- Provide recovery options
-- Maintain data integrity
-- Allow graceful fallbacks
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🎯 Roadmap
-
-### Upcoming Features
-- [ ] Cloud synchronization
-- [ ] Collaborative planning
-- [ ] Mobile app (React Native)
-- [ ] Advanced analytics
-- [ ] Integration with university APIs
-- [ ] Automated deadline reminders
-- [ ] Document scanning and storage
-- [ ] Language learning progress tracking
-
-### Improvements
-- [ ] Enhanced data visualization
-- [ ] Better mobile experience
-- [ ] Offline functionality
-- [ ] Performance optimizations
-- [ ] Accessibility improvements
-
-## 📞 Support
-
-For support, questions, or feature requests:
-- Create an issue on GitHub
-- Check the troubleshooting section
-- Review the documentation
-
-## 🙏 Acknowledgments
-
-- Icons provided by [Lucide React](https://lucide.dev/)
-- UI components inspired by modern design systems
-- Built with the amazing Next.js framework
-- Styled with Tailwind CSS utility-first framework
+4. **Open in Browser**
+   Navigate to [http://localhost:3000](http://localhost:3000).
 
 ---
 
-**Made with ❤️ for students pursuing their dreams in Germany** 
+## 🏗️ Technology Stack
+
+- **Framework**: Next.js 16 (App Router + Turbopack)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + Custom HSL Design Tokens
+- **Icons**: Lucide React
+- **Backend / Auth**: Firebase (Authentication + Cloud Firestore)
+- **State Management**: React Hooks + LocalStorage + Event Bus Sync
+- **Deployment**: Vercel
+
+---
+
+## 🛠️ Environment Variables (Optional for Cloud Sync)
+
+Create a `.env.local` file in the root directory if you wish to connect your own Firebase project:
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
+
+---
+
+## 🚢 Deployment on Vercel
+
+This repository is optimized for one-click deployment on Vercel:
+
+1. Push code to your GitHub repository.
+2. Import the project into your **Vercel Dashboard**.
+3. Deploy! Next.js 16 will automatically build all 17 static pages.
+
+---
+
+## 📝 License
+
+This project is open-source under the [MIT License](LICENSE).
+
+---
+
+**Made with ❤️ for international students pursuing their studies in Germany 🇩🇪**
+ 
