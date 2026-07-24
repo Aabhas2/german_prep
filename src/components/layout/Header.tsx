@@ -58,16 +58,14 @@ const Header = memo(function Header() {
 
           {/* Brand */}
           <Link href="/" className="flex items-center space-x-2.5 group">
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors overflow-hidden shrink-0">
-              <Image 
-                src="/uni_transparentbg.png" 
-                alt="UniRoute DE Logo" 
-                width={36} 
-                height={36} 
-                className="object-contain p-0.5" 
-                priority
-              />
-            </div>
+            <Image 
+              src="/uni_transparentbg.png" 
+              alt="UniRoute DE Logo" 
+              width={40} 
+              height={40} 
+              className="h-10 w-10 object-contain shrink-0 group-hover:scale-105 transition-transform duration-200" 
+              priority
+            />
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-bold text-foreground tracking-tight flex items-center gap-1">
                 UniRoute DE 🇩🇪
