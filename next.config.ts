@@ -32,6 +32,9 @@ const nextConfig: NextConfig = {
     }
     return config
   },
+
+  // Turbopack compatibility
+  turbopack: {},
 }
 
 export default nextConfig 
