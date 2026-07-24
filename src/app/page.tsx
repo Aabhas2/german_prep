@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -22,8 +23,15 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border/60 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push('/')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white shadow-md shadow-primary/20">
-              <span className="text-xl select-none">🇩🇪</span>
+            <div className="relative w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
+              <Image 
+                src="/uni_transparentbg.png" 
+                alt="UniRoute DE Logo" 
+                width={36} 
+                height={36} 
+                className="object-contain p-0.5" 
+                priority
+              />
             </div>
             <div>
               <span className="font-bold text-lg tracking-tight text-foreground flex items-center gap-1.5">

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useCallback, memo } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -57,8 +58,15 @@ const Header = memo(function Header() {
 
           {/* Brand */}
           <Link href="/" className="flex items-center space-x-2.5 group">
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
-              <GraduationCap className="h-5 w-5 text-primary" />
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors overflow-hidden shrink-0">
+              <Image 
+                src="/uni_transparentbg.png" 
+                alt="UniRoute DE Logo" 
+                width={36} 
+                height={36} 
+                className="object-contain p-0.5" 
+                priority
+              />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-bold text-foreground tracking-tight flex items-center gap-1">

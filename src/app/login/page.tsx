@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -124,8 +125,15 @@ export default function LoginPage() {
         <div className="relative z-10 text-center space-y-8">
           {/* Logo area */}
           <div className="flex flex-col items-center gap-4">
-            <div className="w-20 h-20 rounded-3xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-xl">
-              <GraduationCap className="w-10 h-10 text-white" />
+            <div className="w-20 h-20 rounded-3xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-xl p-3">
+              <Image 
+                src="/uni_transparentbg.png" 
+                alt="UniRoute DE Logo" 
+                width={64} 
+                height={64} 
+                className="object-contain" 
+                priority
+              />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white tracking-tight">UniRoute DE</h1>
