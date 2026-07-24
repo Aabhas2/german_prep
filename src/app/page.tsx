@@ -21,25 +21,19 @@ export default function LandingPage() {
       
       {/* ── Top Navigation Bar ────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border/60 transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push('/')}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2 cursor-pointer group" onClick={() => router.push('/')}>
             <Image 
               src="/uni_transparentbg.png" 
-              alt="UniRoute DE Logo" 
-              width={44} 
-              height={44} 
-              className="h-11 w-11 object-contain shrink-0 group-hover:scale-105 transition-transform duration-200" 
+              alt="UniRoute DE" 
+              width={400} 
+              height={140} 
+              className="h-20 sm:h-24 w-auto object-contain shrink-0 -my-3 group-hover:scale-[1.05] transition-transform duration-200" 
               priority
             />
-            <div>
-              <span className="font-bold text-lg tracking-tight text-foreground flex items-center gap-1.5">
-                UniRoute DE
-                <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                  Free
-                </span>
-              </span>
-              <p className="text-[11px] text-muted-foreground hidden sm:block">Study Abroad Planning Suite</p>
-            </div>
+            <span className="text-[11px] font-semibold text-muted-foreground hidden sm:block border-l border-border pl-3 ml-1">
+              Study Abroad Suite 🇩🇪
+            </span>
           </div>
 
           <div className="flex items-center gap-3">

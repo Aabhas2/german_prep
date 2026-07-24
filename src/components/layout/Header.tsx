@@ -54,24 +54,21 @@ const Header = memo(function Header() {
   return (
     <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b border-border shadow-sm transition-colors duration-300">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-20 items-center justify-between">
 
           {/* Brand */}
-          <Link href="/" className="flex items-center space-x-2.5 group">
+          <Link href="/" className="flex items-center space-x-2 group">
             <Image 
               src="/uni_transparentbg.png" 
-              alt="UniRoute DE Logo" 
-              width={40} 
-              height={40} 
-              className="h-10 w-10 object-contain shrink-0 group-hover:scale-105 transition-transform duration-200" 
+              alt="UniRoute DE" 
+              width={400} 
+              height={140} 
+              className="h-20 sm:h-24 w-auto object-contain shrink-0 -my-3 group-hover:scale-[1.05] transition-transform duration-200" 
               priority
             />
-            <div className="flex flex-col leading-tight">
-              <span className="text-sm font-bold text-foreground tracking-tight flex items-center gap-1">
-                UniRoute DE 🇩🇪
-              </span>
-              <span className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">Study Abroad</span>
-            </div>
+            <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase bg-muted/60 px-2 py-0.5 rounded-full border border-border/50 hidden sm:inline-block">
+              DE 🇩🇪
+            </span>
           </Link>
 
           {/* Desktop Navigation */}

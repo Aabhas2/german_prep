@@ -8,13 +8,12 @@ export default function LoadingScreen() {
         <Image 
           src="/uni_transparentbg.png" 
           alt="UniRoute DE" 
-          width={96} 
-          height={96} 
-          className="w-24 h-24 mx-auto object-contain animate-pulse" 
+          width={500} 
+          height={160} 
+          className="h-36 sm:h-44 w-auto mx-auto object-contain animate-pulse -my-4" 
           priority
         />
-        <h1 className="text-2xl font-bold mt-4 text-foreground">UniRoute DE</h1>
-        <p className="text-muted-foreground mt-2">Loading your dashboard...</p>
+        <p className="text-muted-foreground mt-1 text-sm font-medium">Loading your dashboard...</p>
       </div>
     </div>
   )

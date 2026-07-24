@@ -124,19 +124,18 @@ export default function LoginPage() {
 
         <div className="relative z-10 text-center space-y-8">
           {/* Logo area */}
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center -space-y-4">
             <Image 
               src="/uni_transparentbg.png" 
-              alt="UniRoute DE Logo" 
-              width={96} 
-              height={96} 
-              className="w-24 h-24 object-contain drop-shadow-lg" 
+              alt="UniRoute DE" 
+              width={600} 
+              height={200} 
+              className="h-52 sm:h-64 w-auto object-contain drop-shadow-2xl scale-110" 
               priority
             />
-            <div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">UniRoute DE</h1>
-              <p className="text-white/70 text-sm mt-1 tracking-wider uppercase">Study Abroad Planner</p>
-            </div>
+            <p className="text-white/90 text-xs font-bold tracking-widest uppercase bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 shadow-sm relative z-20">
+              Study Abroad Planner 🇩🇪
+            </p>
           </div>
 
           {/* Feature highlights */}
