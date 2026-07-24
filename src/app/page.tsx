@@ -73,7 +73,7 @@ export default function LandingPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
             </span>
-            <span>German Study Abroad Suite 2026 • 100% Free</span>
+            <span>German Study Abroad Suite • 100% Free</span>
           </div>
 
           {/* Main Headline */}
@@ -138,7 +138,7 @@ export default function LandingPage() {
                 <span className="text-xs font-semibold text-muted-foreground ml-2">UniRoute DE Live Workspace</span>
               </div>
               <span className="text-xs px-2.5 py-1 rounded-full bg-success/15 text-success font-medium flex items-center gap-1">
-                <Check className="h-3 w-3" /> Ready for Winter Semester 2026
+                <Check className="h-3 w-3" /> Ready for Winter & Summer Semester Admissions
               </span>
             </div>
 
@@ -205,7 +205,7 @@ export default function LandingPage() {
                 icon: DollarSign,
                 color: 'text-accent',
                 bg: 'bg-accent/10',
-                badge: '2026 Visa Standard',
+                badge: 'Official Visa Standard',
                 title: 'Sperrkonto & Finance Calculator',
                 desc: 'Pre-calculated €11,904/year Blocked Account requirement. Live multi-currency conversion between EUR (€), INR (₹), and USD ($).'
               },
@@ -281,7 +281,7 @@ export default function LandingPage() {
               a: 'No! You can use 100% of all features instantly without an account. All your data is saved safely in your browser storage. Signing up with Google or Email is completely optional and only needed if you want cloud sync across multiple devices.'
             },
             {
-              q: 'What is the required Blocked Account (Sperrkonto) amount for Germany in 2026?',
+              q: 'What is the required Blocked Account (Sperrkonto) amount for Germany?',
               a: 'The current official German student visa standard is €11,904 per year (€992 per month). The Finance tab in UniRoute DE calculates this requirement live in EUR, INR, and USD.'
             },
             {
