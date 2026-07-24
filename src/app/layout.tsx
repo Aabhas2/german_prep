@@ -16,6 +16,11 @@ export const metadata: Metadata = {
   title: 'UniRoute DE — German Study Abroad Planner',
   description: 'Your personalized German study abroad preparation dashboard — track university applications, Blocked Account (Sperrkonto), APS, visa, exams, and housing.',
   keywords: 'study abroad, Germany, university application, visa, Sperrkonto, APS, dMAT, academic planner, UniRoute DE',
+  icons: {
+    icon: '/uni.png',
+    shortcut: '/uni.png',
+    apple: '/uni.png',
+  },
 }
 
 export default function RootLayout({
