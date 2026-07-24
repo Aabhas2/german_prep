@@ -25,39 +25,40 @@ export default function UniversitiesPage() {
   const [uniToDelete, setUniToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // Load data on mount / auth state change
+  const loadUnis = useCallback(async () => {
+    if (user) {
+      try {
+        const cloudUnis = await dbUniversities.fetch(user.uid)
+        setUniversities(cloudUnis)
+      } catch (error) {
+        console.error('Error fetching universities from cloud:', error)
+        setUniversities([])
+      }
+    } else {
+      try {
+        const savedUniversities = localStorage.getItem('universities')
+        const parsedUniversities = savedUniversities
+          ? JSON.parse(savedUniversities).map((uni: any) => ({
+              ...uni,
+              applicationDeadline: uni.applicationDeadline ? new Date(uni.applicationDeadline) : new Date()
+            }))
+          : mockUniversities
+        setUniversities(parsedUniversities)
+      } catch (error) {
+        console.error('Error loading universities:', error)
+        setUniversities(mockUniversities)
+      }
+    }
+  }, [user])
+
   useEffect(() => {
     setMounted(true)
-    const loadUnis = useCallback(async () => {
-      if (user) {
-        try {
-          const cloudUnis = await dbUniversities.fetch(user.uid)
-          setUniversities(cloudUnis)
-        } catch (error) {
-          console.error('Error fetching universities from cloud:', error)
-          setUniversities([])
-        }
-      } else {
-        try {
-          const savedUniversities = localStorage.getItem('universities')
-          const parsedUniversities = savedUniversities
-            ? JSON.parse(savedUniversities).map((uni: any) => ({
-                ...uni,
-                applicationDeadline: uni.applicationDeadline ? new Date(uni.applicationDeadline) : new Date()
-              }))
-            : mockUniversities
-          setUniversities(parsedUniversities)
-        } catch (error) {
-          console.error('Error loading universities:', error)
-          setUniversities(mockUniversities)
-        }
-      }
-    }, [user])
-
     loadUnis()
     const handleDataUpdate = () => loadUnis()
     window.addEventListener('app-data-updated', handleDataUpdate)
     return () => window.removeEventListener('app-data-updated', handleDataUpdate)
-  }, [user])
+  }, [loadUnis])
 
   useEffect(() => {
     if (mounted && !user) {
